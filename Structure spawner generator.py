@@ -1,0 +1,259 @@
+# Structure spawner generator
+# Copyright (C) 2016 Matteo Morena (https://github.com/xMamo)
+#
+# This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+# License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+# version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+# (http://www.gnu.org/licenses/) for more details.
+
+import inspect
+
+from pymclevel import materials
+from pymclevel.nbt import TAG_Compound, TAG_String, TAG_Int, TAG_List, TAG_Byte_Array, TAG_Short_Array, TAG_Int_Array, TAG_Byte, TAG_Short, TAG_Long, TAG_Float, TAG_Double
+from pymclevel.schematic import MCSchematic
+
+displayName = "Structure spawner generator"
+
+inputs = (
+	("Relative position", ("North", "East", "South", "West")),
+	("Forward offset", 2),
+	("Left offset", 0),
+	("Up offset", 0),
+	("Include air", False),
+	("Include blocks", True),
+	("Include entities", False),
+	("Include \"gamerule commandBlockOutput false\" command", True),
+	("Ignore NBT tags", ("string", "value=Pos, Motion, Rotation, FallDIstance, Fire, Air, OnGround, Dimension, PortalCooldown, UUIDMost, UUIDLeast, HurtTime, HurtByTimestamp, DeathTime, EggLayTime, Fuse, Lifetime, PlayerSpawned, EatingHaystack, wasOnGround, HurtBy, life, inGround, ownerName, Age, Thrower, PushX, PushZ, TransferCooldown, SuccessCount, LastOutput, conditionMet, OwnerUUIDMost, OwnerUUIDLeast, Life, Levels, BrewTime, OutputSignal, CookTime, CookTimeTotal"))
+)
+
+
+def perform(level, box, options):
+	editor = inspect.stack()[1][0].f_locals.get('self', None).editor
+
+	if options["Relative position"] == "North":
+		execution_center = ((box.minx + box.maxx) // 2 + options["Left offset"], box.miny - options["Up offset"] + 2, box.maxz + options["Forward offset"] - 1)
+	elif options["Relative position"] == "East":
+		execution_center = (box.minx - options["Forward offset"], box.miny - options["Up offset"] + 2, (box.minz + box.maxz) // 2 + options["Left offset"])
+	elif options["Relative position"] == "South":
+		execution_center = ((box.minx + box.maxx) // 2 - options["Left offset"], box.miny - options["Up offset"] + 2, box.minz - options["Forward offset"])
+	if options["Relative position"] == "West":
+		execution_center = (box.maxx + options["Forward offset"] - 1, box.miny - options["Up offset"] + 2, (box.minz + box.maxz) // 2 - options["Left offset"])
+	include_air = options["Include air"]
+	include_blocks = options["Include blocks"]
+	include_entities = options["Include entities"]
+	include_command_block_output_command = options["Include \"gamerule commandBlockOutput false\" command"]
+	ignored_nbt_tags = options["Ignore NBT tags"].replace(" ", "").split(",") + ["x", "y", "z"]
+	blocks_to_enqueue = [6, 26, 27, 28, 31, 32, 34, 36, 37, 38, 39, 40, 50, 51, 55, 59, 63, 64, 65, 66, 68, 69, 70, 71, 72, 75, 76, 77, 78, 81, 83, 90, 92, 93, 94, 96, 104, 105, 106, 111, 115, 119, 127, 131, 140, 141, 142, 143, 147, 148, 149, 150, 157, 167, 171, 175, 176, 177, 193, 194, 195, 196, 197, 199, 200, 207]
+
+	command = "summon FallingSand ~ ~1 ~ {id:\"FallingSand\",Block:\"minecraft:redstone_block\",Time:1,Passengers:[{id:\"FallingSand\",Block:\"minecraft:activator_rail\",Time:1,Passengers:["
+	first_element = True
+
+	if include_command_block_output_command:
+		command += "{id:\"MinecartCommandBlock\",Command:\"gamerule commandBlockOutput false\"}"
+		first_element = False
+
+	if include_blocks:
+		if include_air:
+			air_blocks = []
+			for x in xrange(box.minx, box.maxx):
+				air_blocks.append([])
+				for y in xrange(box.miny, box.maxy):
+					air_blocks[x - box.minx].append([])
+					for z in xrange(box.minz, box.maxz):
+						air_blocks[x - box.minx][y - box.miny].append(True)
+			for cuboid in subdivide_in_cuboids(air_blocks, 32768, False, True, False):
+				if volume(cuboid[0][0], cuboid[0][1], cuboid[0][2], cuboid[1][0], cuboid[1][1], cuboid[1][2]) == 1:
+					command_part = "{id:\"MinecartCommandBlock\",Command:\"setblock ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
+				else:
+					command_part = "{id:\"MinecartCommandBlock\",Command:\"fill ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
+				if not first_element:
+					command += ","
+					first_element = False
+				command += command_part
+
+		blocks = []
+		for x in xrange(box.minx, box.maxx):
+			blocks.append([])
+			for y in xrange(box.miny, box.maxy):
+				blocks[x - box.minx].append([])
+				for z in xrange(box.minz, box.maxz):
+					block_id = level.blockAt(x, y, z)
+					blocks[x - box.minx][y - box.miny].append((block_id, level.blockDataAt(x, y, z), level.tileEntityAt(x, y, z)))
+		enqueued = []
+		for x in xrange(0, len(blocks)):
+			for y in xrange(0, len(blocks[x])):
+				for z in xrange(0, len(blocks[x][y])):
+					block = blocks[x][y][z]
+					if block[0] >= 1:
+						for cuboid in subdivide_in_cuboids(blocks, 32768, False, (block[0], block[1], block[2]),(-1, 0, None)):
+							if block[0] != 0 or (block[0] == 0 and include_air):
+								if volume(cuboid[0][0], cuboid[0][1], cuboid[0][2], cuboid[1][0], cuboid[1][1],cuboid[1][2]) == 1:
+									command_part = "{id:\"MinecartCommandBlock\",Command:\"setblock ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " " + materials.block_map[block[0]]
+								else:
+									command_part = "{id:\"MinecartCommandBlock\",Command:\"fill ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] + box.minz - execution_center[2]) + " " + materials.block_map[block[0]]
+								if block[1] != 0 and block[2] is None:
+									command_part += " " + str(block[1])
+								if block[2] is not None:
+									command_part += " " + str(block[1]) + " replace " + escape_string(nbt_to_string(block[2], ignored_nbt_tags))
+								command_part += "\"}"
+								if block[0] not in blocks_to_enqueue:
+									if not first_element:
+										command += ","
+										first_element = False
+									command += command_part
+								else:
+									enqueued.append(command_part)
+		for enqueued_command in enqueued:
+			if not first_element:
+				command += ","
+				first_element = False
+			command += enqueued_command
+
+	if include_entities:
+		for (chunk, slices, point) in level.getChunkSlices(box):
+			for entity in chunk.Entities:
+				entity_x = entity["Pos"][0].value
+				entity_y = entity["Pos"][1].value
+				entity_z = entity["Pos"][2].value
+				if (entity_x, entity_y, entity_z) in box:
+					if not first_element:
+						command += ","
+						first_element = False
+					command += "{id:\"MinecartCommandBlock\",Command:\"summon " + entity["id"].value + " ~" + (entity_x - execution_center[0]) + " ~" + (entity_y - execution_center[1]) + " ~" + (entity_z - execution_center[2]) + " " + escape_string(nbt_to_string(entity, ignored_nbt_tags)) + "\"}"
+
+	if not first_element:
+		command += ","
+		first_element = False
+	command += "{id:\"MinecartCommandBlock\",Command:\"tellraw @a {\\\"text\\\":\\\"Generated with Mamo's \\\",\\\"color\\\":\\\"yellow\\\",\\\"extra\\\":[{\\\"text\\\":\\\"Structure spawner generator\\\",\\\"italic\\\":true},{\\\"text\\\":\\\". If you happen to speak Italian, check you his channel at \\\"},{\\\"text\\\":\\\"youtube.com/iMamoMC\\\",\\\"color\\\":\\\"blue\\\",\\\"clickEvent\\\":{\\\"action\\\":\\\"open_url\\\",\\\"value\\\":\\\"https://www.youtube.com/user/iMamoMC\\\"},\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":\\\"Click here to check out my channel!\\\"}},{\\\"text\\\":\\\".\\\"}]}\"}"
+	if not first_element:
+		command += ","
+	command += "{id:\"MinecartCommandBlock\",Command:\"setblock ~ ~1 ~ minecraft:command_block 0 replace {auto:1b,Command:\\\"fill ~ ~-3 ~ ~ ~ ~ minecraft:air\\\"}\"},{id:\"MinecartCommandBlock\",Command:\"kill @e[type=MinecartCommandBlock,r=0]\"}]}]}"
+
+	if len(command) > 32767:
+		editor.Notify("Unfortunately no command could be generated, as it would be longer than the command block command length limit of 32767 characters.")
+		return
+
+	schematic = MCSchematic((1, 1, 1), None, None, level.materials)
+	schematic.setBlockAt(0, 0, 0, 137)
+	schematic.setBlockDataAt(0, 0, 0, 0)
+	command_block = TAG_Compound()
+	command_block["id"] = TAG_String("Control")
+	command_block["x"] = TAG_Int(0)
+	command_block["y"] = TAG_Int(0)
+	command_block["z"] = TAG_Int(0)
+	command_block["CustomName"] = TAG_String("@")
+	command_block["Command"] = TAG_String(command)
+	command_block["SuccessCount"] = TAG_Int(0)
+	command_block["TrackOutput"] = TAG_Byte(1)
+	command_block["powered"] = TAG_Byte(0)
+	command_block["auto"] = TAG_Byte(0)
+	command_block["conditionMet"] = TAG_Byte(0)
+	schematic.addTileEntity(command_block)
+	editor.addCopiedSchematic(schematic)
+
+
+def subdivide_in_cuboids(array, max_volume, use_temp_copy, compare_with, replacement):
+	if use_temp_copy:
+		return __subdivide_in_cuboids(list(array), max_volume, compare_with, replacement)
+	else:
+		return __subdivide_in_cuboids(array, max_volume, compare_with, replacement)
+
+
+def __subdivide_in_cuboids(array, max_volume, compare_with, replacement):
+	cuboids = []
+
+	for x1 in xrange(0, len(array)):
+		for y1 in xrange(0, len(array[x1])):
+			for z1 in xrange(0, len(array[x1][y1])):
+				if array[x1][y1][z1] == compare_with:
+					x2 = x1
+					while x2 < len(array) and array[x2][y1][z1] == compare_with:
+						x2 += 1
+					x2 -= 1
+					while volume(x1, y1, z1, x2, y1, z1) > max_volume:
+						x2 -= 1
+
+					y2 = len(array[x1]) - 1
+					for x in xrange(x1, x2 + 1):
+						y = y1
+						while y <= y2 and array[x][y][z1] == compare_with:
+							y += 1
+						y -= 1
+						if y < y2:
+							y2 = y
+					while volume(x1, y1, z1, x2, y2, z1) > max_volume:
+						y2 -= 1
+
+					z2 = len(array[x1][y1]) - 1
+					for x in xrange(x1, x2 + 1):
+						for y in xrange(y1, y2 + 1):
+							z = z1
+							while z <= z2 and array[x][y][z] == compare_with:
+								z += 1
+							z -= 1
+							if z < z2:
+								z2 = z
+					while volume(x1, y1, z1, x2, y2, z2) > max_volume:
+						z2 -= 1
+
+					cuboid = ((x1, y1, z1), (x2, y2, z2))
+					cuboids.append(cuboid)
+
+					for x in xrange(x1, x2 + 1):
+						for y in xrange(y1, y2 + 1):
+							for z in xrange(z1, z2 + 1):
+								array[x][y][z] = replacement
+
+	return cuboids
+
+
+def volume(x1, y1, z1, x2, y2, z2):
+	return (x2 - x1 + 1) * (y2 - y1 + 1) * (z2 - z1 + 1)
+
+
+def nbt_to_string(nbt, ignored_tags):
+	string = ""
+	if type(nbt) is TAG_Compound:
+		string += "{"
+		first_element = True
+		for tag in nbt.keys():
+			if tag != "" and tag in ignored_tags:
+				continue
+			if not first_element:
+				string += ","
+				first_element = False
+			if tag != "":
+				string += tag + ":"
+			string += nbt_to_string(nbt[tag], ignored_tags)
+		string += "}"
+	elif type(nbt) in [TAG_List, TAG_Byte_Array, TAG_Short_Array, TAG_Int_Array]:
+		string += "["
+		first_element = True
+		for tag in xrange(0, len(nbt)):
+			if not first_element:
+				string += ","
+				first_element = False
+			string += nbt_to_string(nbt[tag], ignored_tags)
+		string += "]"
+	elif type(nbt) is TAG_String:
+		string += "\"" + escape_string(nbt.value) + "\""
+	elif type(nbt) is TAG_Byte:
+		string += str(nbt.value) + "b"
+	elif type(nbt) is TAG_Short:
+		string += str(nbt.value) + "s"
+	elif type(nbt) is TAG_Int:
+		string += str(nbt.value)
+	elif type(nbt) is TAG_Long:
+		string += str(nbt.value) + "l"
+	elif type(nbt) is TAG_Float:
+		string += str(nbt.value) + "f"
+	elif type(nbt) is TAG_Double:
+		string += str(nbt.value) + "d"
+	return string
+
+
+def escape_string(string):
+	return string.replace("\\", "\\\\").replace("\"", "\\\"")
