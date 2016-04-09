@@ -71,7 +71,7 @@ def perform(level, box, options):
 					command_part = "{id:\"MinecartCommandBlock\",Command:\"fill ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
 				if not first_element:
 					command += ","
-					first_element = False
+				first_element = False
 				command += command_part
 
 		blocks = []
@@ -102,14 +102,14 @@ def perform(level, box, options):
 								if block[0] not in blocks_to_enqueue:
 									if not first_element:
 										command += ","
-										first_element = False
+									first_element = False
 									command += command_part
 								else:
 									enqueued.append(command_part)
 		for enqueued_command in enqueued:
 			if not first_element:
 				command += ","
-				first_element = False
+			first_element = False
 			command += enqueued_command
 
 	if include_entities:
@@ -121,12 +121,12 @@ def perform(level, box, options):
 				if (entity_x, entity_y, entity_z) in box:
 					if not first_element:
 						command += ","
-						first_element = False
+					first_element = False
 					command += "{id:\"MinecartCommandBlock\",Command:\"summon " + entity["id"].value + " ~" + (entity_x - execution_center[0]) + " ~" + (entity_y - execution_center[1]) + " ~" + (entity_z - execution_center[2]) + " " + escape_string(nbt_to_string(entity, ignored_nbt_tags)) + "\"}"
 
 	if not first_element:
 		command += ","
-		first_element = False
+	first_element = False
 	command += "{id:\"MinecartCommandBlock\",Command:\"tellraw @a {\\\"text\\\":\\\"Generated with Mamo's \\\",\\\"color\\\":\\\"yellow\\\",\\\"extra\\\":[{\\\"text\\\":\\\"Structure spawner generator\\\",\\\"italic\\\":true},{\\\"text\\\":\\\". If you happen to speak Italian, check you his channel at \\\"},{\\\"text\\\":\\\"youtube.com/iMamoMC\\\",\\\"color\\\":\\\"blue\\\",\\\"clickEvent\\\":{\\\"action\\\":\\\"open_url\\\",\\\"value\\\":\\\"https://www.youtube.com/user/iMamoMC\\\"},\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":\\\"Click here to check out my channel!\\\"}},{\\\"text\\\":\\\".\\\"}]}\"}"
 	if not first_element:
 		command += ","
@@ -215,43 +215,42 @@ def volume(x1, y1, z1, x2, y2, z2):
 
 
 def nbt_to_string(nbt, ignored_tags):
-	string = ""
 	if type(nbt) is TAG_Compound:
-		string += "{"
+		string = "{"
 		first_element = True
 		for tag in nbt.keys():
 			if tag != "" and tag in ignored_tags:
 				continue
 			if not first_element:
 				string += ","
-				first_element = False
+			first_element = False
 			if tag != "":
 				string += tag + ":"
 			string += nbt_to_string(nbt[tag], ignored_tags)
 		string += "}"
 	elif type(nbt) in [TAG_List, TAG_Byte_Array, TAG_Short_Array, TAG_Int_Array]:
-		string += "["
+		string = "["
 		first_element = True
 		for tag in xrange(0, len(nbt)):
 			if not first_element:
 				string += ","
-				first_element = False
+			first_element = False
 			string += nbt_to_string(nbt[tag], ignored_tags)
 		string += "]"
 	elif type(nbt) is TAG_String:
-		string += "\"" + escape_string(nbt.value) + "\""
+		string = "\"" + escape_string(nbt.value) + "\""
 	elif type(nbt) is TAG_Byte:
-		string += str(nbt.value) + "b"
+		string = str(nbt.value) + "b"
 	elif type(nbt) is TAG_Short:
-		string += str(nbt.value) + "s"
+		string = str(nbt.value) + "s"
 	elif type(nbt) is TAG_Int:
-		string += str(nbt.value)
+		string = str(nbt.value)
 	elif type(nbt) is TAG_Long:
-		string += str(nbt.value) + "l"
+		string = str(nbt.value) + "l"
 	elif type(nbt) is TAG_Float:
-		string += str(nbt.value) + "f"
+		string = str(nbt.value) + "f"
 	elif type(nbt) is TAG_Double:
-		string += str(nbt.value) + "d"
+		string = str(nbt.value) + "d"
 	return string
 
 
