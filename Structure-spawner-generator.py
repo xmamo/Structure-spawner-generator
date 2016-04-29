@@ -60,7 +60,7 @@ def perform(level, box, options):
 	for block_id in xrange(0, len(materials.block_map) - 1):
 		if materials.block_map[block_id] in block_names_to_enqueue:
 			blocks_to_enqueue.append(block_id)
-	add_credits = False
+	add_credits = True
 
 	command = "summon FallingSand ~ ~1 ~ {id:\"FallingSand\",Block:\"minecraft:redstone_block\",Time:1,Passengers:[{id:\"FallingSand\",Block:\"minecraft:activator_rail\",Time:1,Passengers:["
 	first_element = True
