@@ -13,8 +13,7 @@ import inspect
 
 import mcplatform
 from pymclevel import materials
-from pymclevel.nbt import TAG_Compound, TAG_String, TAG_Int, TAG_List, TAG_Byte_Array, TAG_Short_Array, TAG_Int_Array, \
-	TAG_Byte, TAG_Short, TAG_Long, TAG_Float, TAG_Double
+from pymclevel.nbt import TAG_Compound, TAG_String, TAG_Int, TAG_List, TAG_Byte_Array, TAG_Short_Array, TAG_Int_Array, TAG_Byte, TAG_Short, TAG_Long, TAG_Float, TAG_Double
 from pymclevel.schematic import MCSchematic
 
 displayName = "Structure spawner generator"
@@ -29,15 +28,16 @@ inputs = (
 	("Include entities", False),
 	("Include \"gamerule commandBlockOutput false\" command", True),
 	("Include \"gamerule logAdminCommands false\" command", True),
-	("Add initialization commands", False, ),
+	("Add initialization commands", False),
 	("Add finalization commands", False),
 	("Blocks to enqueue", ("string", "value=minecraft:sapling, minecraft:bed, minecraft:golden_rail, minecraft:detector_rail, minecraft:tallgrass, minecraft:deadbush, minecraft:piston_head, minecraft:piston_extension, minecraft:yellow_flower, minecraft:red_flower, minecraft:brown_mushroom, minecraft:red_mushroom, minecraft:torch, minecraft:fire, minecraft:redstone_wire, minecraft:wheat, minecraft:standing_sign, minecraft:wooden_door, minecraft:ladder, minecraft:rail, minecraft:wall_sign, minecraft:lever, minecraft:stone_pressure_plate, minecraft:iron_door, minecraft:wooden_pressure_plate, minecraft:unlit_redstone_torch, minecraft:redstone_torch, minecraft:stone_button, minecraft:snow_layer, minecraft:cactus, minecraft:reeds, minecraft:portal, minecraft:cake, minecraft:unpowered_repeater, minecraft:powered_repeater, minecraft:trapdoor, minecraft:pumpkin_stem, minecraft:melon_stem, minecraft:vine, minecraft:waterlily, minecraft:nether_wart, minecraft:end_portal, minecraft:cocoa, minecraft:tripwire_hook, minecraft:flower_pot, minecraft:carrots, minecraft:potatoes, minecraft:wooden_button, minecraft:light_weighted_pressure_plate, minecraft:heavy_weighted_pressure_plate, minecraft:unpowered_comparator, minecraft:powered_comparator, minecraft:activator_rail, minecraft:iron_trapdoor, minecraft:carpet, minecraft:double_plant, minecraft:standing_banner, minecraft:wall_banner, minecraft:spruce_door, minecraft:birch_door, minecraft:jungle_door, minecraft:acacia_door, minecraft:dark_oak_door, minecraft:chorus_plant, minecraft:chorus_flower, minecraft:beetroots")),
-	("Ignored NTB tags", ("string", "value=Pos, Motion, Rotation, FallDIstance, Fire, Air, OnGround, Dimension, PortalCooldown, UUIDMost, UUIDLeast, HurtTime, HurtByTimestamp, DeathTime, EggLayTime, Fuse, Lifetime, PlayerSpawned, EatingHaystack, wasOnGround, HurtBy, life, inGround, ownerName, Age, Thrower, PushX, PushZ, TransferCooldown, SuccessCount, LastOutput, conditionMet, OwnerUUIDMost, OwnerUUIDLeast, Life, Levels, BrewTime, OutputSignal, CookTime, CookTimeTotal"))
+	("NBT tags to ignore", ("string", "value=Pos, Motion, Rotation, FallDIstance, Fire, Air, OnGround, Dimension, PortalCooldown, UUIDMost, UUIDLeast, HurtTime, HurtByTimestamp, DeathTime, EggLayTime, Fuse, Lifetime, PlayerSpawned, EatingHaystack, wasOnGround, HurtBy, life, inGround, ownerName, Age, Thrower, PushX, PushZ, TransferCooldown, SuccessCount, LastOutput, conditionMet, OwnerUUIDMost, OwnerUUIDLeast, Life, Levels, BrewTime, OutputSignal, CookTime, CookTimeTotal")),
+	("Ignore maximum Command Block command length", False)
 )
 
 
 def perform(level, box, options):
-	editor = inspect.stack()[1][0].f_locals.get('self', None).editor
+	editor = inspect.stack()[1][0].f_locals.get("self", None).editor
 
 	if options["Relative position"] == "North":
 		execution_center = ((box.minx + box.maxx) // 2 + options["Left offset"], box.miny - options["Up offset"] + 2, box.maxz + options["Forward offset"] - 1)
@@ -54,12 +54,13 @@ def perform(level, box, options):
 	include_logadmincommands_command = options["Include \"gamerule logAdminCommands false\" command"]
 	add_initialization_commands = options["Add initialization commands"]
 	add_finalization_commands = options["Add finalization commands"]
-	ignored_nbt_tags = options["Ignored NTB tags"].replace(" ", "").split(",") + ["x", "y", "z"]
-	block_names_to_enqueue = options["Blocks to enqueue"].replace(" ", "").split(",")
+	block_names_to_enqueue = options["Blocks to enqueue"].split("\\s*,\\s*")
 	blocks_to_enqueue = []
 	for block_id in xrange(0, len(materials.block_map) - 1):
 		if materials.block_map[block_id] in block_names_to_enqueue:
 			blocks_to_enqueue.append(block_id)
+	nbt_tags_to_ignore = options["NBT tags to ignore"].split("\\s*,\\s*") + ["x", "y", "z"]
+	ignore_maximum_command_block_command_length = options["Ignore maximum Command Block command length"]
 	add_credits = True
 
 	command = "summon FallingSand ~ ~1 ~ {id:\"FallingSand\",Block:\"minecraft:redstone_block\",Time:1,Passengers:[{id:\"FallingSand\",Block:\"minecraft:activator_rail\",Time:1,Passengers:["
@@ -76,7 +77,7 @@ def perform(level, box, options):
 		command += "{id:\"MinecartCommandBlock\",Command:\"gamerule logAdminCommands false\"}"
 
 	if add_initialization_commands:
-		file_name = mcplatform.askOpenFile("Select the file containing the initialization commands...", False, ["*"])
+		file_name = mcplatform.askOpenFile("Select the text file containing the initialization commands...", False, ["txt"])
 		if file_name is not None:
 			for line in open(file_name).read().splitlines():
 				if not first_element:
@@ -94,14 +95,13 @@ def perform(level, box, options):
 					for z in xrange(box.minz, box.maxz):
 						air_blocks[x - box.minx][y - box.miny].append(True)
 			for cuboid in subdivide_in_cuboids(air_blocks, 32768, False, True, False):
-				if volume(cuboid[0][0], cuboid[0][1], cuboid[0][2], cuboid[1][0], cuboid[1][1], cuboid[1][2]) == 1:
-					command_part = "{id:\"MinecartCommandBlock\",Command:\"setblock ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
-				else:
-					command_part = "{id:\"MinecartCommandBlock\",Command:\"fill ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
 				if not first_element:
 					command += ","
 				first_element = False
-				command += command_part
+				if volume(cuboid[0][0], cuboid[0][1], cuboid[0][2], cuboid[1][0], cuboid[1][1], cuboid[1][2]) == 1:
+					command += "{id:\"MinecartCommandBlock\",Command:\"setblock ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
+				else:
+					command += "{id:\"MinecartCommandBlock\",Command:\"fill ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
 
 		blocks = []
 		for x in xrange(box.minx, box.maxx):
@@ -126,7 +126,7 @@ def perform(level, box, options):
 								if block[1] != 0 and block[2] is None:
 									command_part += " " + str(block[1])
 								if block[2] is not None:
-									command_part += " " + str(block[1]) + " replace " + escape_string(nbt_to_string(block[2], ignored_nbt_tags))
+									command_part += " " + str(block[1]) + " replace " + escape_string(nbt_to_string(block[2], nbt_tags_to_ignore))
 								command_part += "\"}"
 								if block[0] not in blocks_to_enqueue:
 									if not first_element:
@@ -151,10 +151,10 @@ def perform(level, box, options):
 					if not first_element:
 						command += ","
 					first_element = False
-					command += "{id:\"MinecartCommandBlock\",Command:\"summon " + entity["id"].value + " ~" + (entity_x - execution_center[0]) + " ~" + (entity_y - execution_center[1]) + " ~" + (entity_z - execution_center[2]) + " " + escape_string(nbt_to_string(entity, ignored_nbt_tags)) + "\"}"
+					command += "{id:\"MinecartCommandBlock\",Command:\"summon " + entity["id"].value + " ~" + (entity_x - execution_center[0]) + " ~" + (entity_y - execution_center[1]) + " ~" + (entity_z - execution_center[2]) + " " + escape_string(nbt_to_string(entity, nbt_tags_to_ignore)) + "\"}"
 
 	if add_finalization_commands:
-		file_name = mcplatform.askOpenFile("Select the file containing the finalization commands...", False, ["*"])
+		file_name = mcplatform.askOpenFile("Select the text file containing the finalization commands...", False, ["txt"])
 		if file_name is not None:
 			for line in open(file_name).read().splitlines():
 				if not first_element:
@@ -167,13 +167,13 @@ def perform(level, box, options):
 			command += ","
 		first_element = False
 		command += "{id:\"MinecartCommandBlock\",Command:\"tellraw @a {\\\"text\\\":\\\"Generated with Mamo's \\\",\\\"color\\\":\\\"yellow\\\",\\\"extra\\\":[{\\\"text\\\":\\\"Structure spawner generator\\\",\\\"italic\\\":true},{\\\"text\\\":\\\". If you happen to speak Italian, check you his channel at \\\"},{\\\"text\\\":\\\"youtube.com/iMamoMC\\\",\\\"color\\\":\\\"blue\\\",\\\"clickEvent\\\":{\\\"action\\\":\\\"open_url\\\",\\\"value\\\":\\\"https://www.youtube.com/user/iMamoMC\\\"},\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":\\\"Click here to check out my channel!\\\"}},{\\\"text\\\":\\\".\\\"}]}\"}"
+
 	if not first_element:
 		command += ","
 	command += "{id:\"MinecartCommandBlock\",Command:\"setblock ~ ~1 ~ minecraft:command_block 0 replace {auto:1b,Command:\\\"fill ~ ~-3 ~ ~ ~ ~ minecraft:air\\\"}\"},{id:\"MinecartCommandBlock\",Command:\"kill @e[type=MinecartCommandBlock,r=0]\"}]}]}"
 
-	if len(command) > 32767:
-		editor.Notify(
-			"Unfortunately no command could be generated, as it would be longer than the command block command length limit of 32767 characters.")
+	if not ignore_maximum_command_block_command_length and len(command) > 32767:
+		editor.Notify("Unfortunately no command could be generated, as it would be longer than the Command Block command length limit of 32767 characters.")
 		return
 
 	schematic = MCSchematic((1, 1, 1), None, None, level.materials)
@@ -197,6 +197,10 @@ def perform(level, box, options):
 
 def escape_string(string):
 	return string.replace("\\", "\\\\").replace("\"", "\\\"")
+
+
+def volume(x1, y1, z1, x2, y2, z2):
+	return (x2 - x1 + 1) * (y2 - y1 + 1) * (z2 - z1 + 1)
 
 
 def subdivide_in_cuboids(array, max_volume, use_temp_copy, compare_with, replacement):
@@ -254,13 +258,10 @@ def __subdivide_in_cuboids(array, max_volume, compare_with, replacement):
 	return cuboids
 
 
-def volume(x1, y1, z1, x2, y2, z2):
-	return (x2 - x1 + 1) * (y2 - y1 + 1) * (z2 - z1 + 1)
-
-
 def nbt_to_string(nbt, ignored_tags):
+	string = ""
 	if type(nbt) is TAG_Compound:
-		string = "{"
+		string += "{"
 		first_element = True
 		for tag in nbt.keys():
 			if tag != "" and tag in ignored_tags:
@@ -273,7 +274,7 @@ def nbt_to_string(nbt, ignored_tags):
 			string += nbt_to_string(nbt[tag], ignored_tags)
 		string += "}"
 	elif type(nbt) in [TAG_List, TAG_Byte_Array, TAG_Short_Array, TAG_Int_Array]:
-		string = "["
+		string += "["
 		first_element = True
 		for tag in xrange(0, len(nbt)):
 			if not first_element:
@@ -282,17 +283,17 @@ def nbt_to_string(nbt, ignored_tags):
 			string += nbt_to_string(nbt[tag], ignored_tags)
 		string += "]"
 	elif type(nbt) is TAG_String:
-		string = "\"" + escape_string(nbt.value) + "\""
+		string += "\"" + escape_string(nbt.value) + "\""
 	elif type(nbt) is TAG_Byte:
-		string = str(nbt.value) + "b"
+		string += str(nbt.value) + "b"
 	elif type(nbt) is TAG_Short:
-		string = str(nbt.value) + "s"
+		string += str(nbt.value) + "s"
 	elif type(nbt) is TAG_Int:
-		string = str(nbt.value)
+		string += str(nbt.value)
 	elif type(nbt) is TAG_Long:
-		string = str(nbt.value) + "l"
+		string += str(nbt.value) + "l"
 	elif type(nbt) is TAG_Float:
-		string = str(nbt.value) + "f"
+		string += str(nbt.value) + "f"
 	elif type(nbt) is TAG_Double:
-		string = str(nbt.value) + "d"
+		string += str(nbt.value) + "d"
 	return string
