@@ -11,6 +11,8 @@
 
 import inspect
 
+import re
+
 import mcplatform
 from pymclevel import materials
 from pymclevel.nbt import TAG_Compound, TAG_String, TAG_Int, TAG_List, TAG_Byte_Array, TAG_Short_Array, TAG_Int_Array, TAG_Byte, TAG_Short, TAG_Long, TAG_Float, TAG_Double
@@ -54,12 +56,12 @@ def perform(level, box, options):
 	include_logadmincommands_command = options["Include \"gamerule logAdminCommands false\" command"]
 	add_initialization_commands = options["Add initialization commands"]
 	add_finalization_commands = options["Add finalization commands"]
-	block_names_to_enqueue = options["Blocks to enqueue"].split("\\s*,\\s*")
+	block_names_to_enqueue = re.split("\\s*,\\s*", options["Blocks to enqueue"])
 	blocks_to_enqueue = []
 	for block_id in xrange(0, len(materials.block_map) - 1):
 		if materials.block_map[block_id] in block_names_to_enqueue:
 			blocks_to_enqueue.append(block_id)
-	nbt_tags_to_ignore = options["NBT tags to ignore"].split("\\s*,\\s*") + ["x", "y", "z"]
+	nbt_tags_to_ignore = re.split("\\s*,\\s*", options["NBT tags to ignore"]) + ["x", "y", "z"]
 	ignore_maximum_command_block_command_length = options["Ignore maximum Command Block command length"]
 	add_credits = True
 
