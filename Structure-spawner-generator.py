@@ -1,16 +1,20 @@
 # Structure spawner generator
-# Copyright (C) 2016 Matteo Morena (https://github.com/xMamo)
+# Copyright (C) 2016  Matteo Morena
 #
-# This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
-# License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
-# version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
-# (http://www.gnu.org/licenses/) for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import inspect
-
 import re
 
 import mcplatform
@@ -34,6 +38,7 @@ inputs = (
 	("Add finalization commands", False),
 	("Blocks to enqueue", ("string", "value=minecraft:sapling, minecraft:bed, minecraft:golden_rail, minecraft:detector_rail, minecraft:tallgrass, minecraft:deadbush, minecraft:piston_head, minecraft:piston_extension, minecraft:yellow_flower, minecraft:red_flower, minecraft:brown_mushroom, minecraft:red_mushroom, minecraft:torch, minecraft:fire, minecraft:redstone_wire, minecraft:wheat, minecraft:standing_sign, minecraft:wooden_door, minecraft:ladder, minecraft:rail, minecraft:wall_sign, minecraft:lever, minecraft:stone_pressure_plate, minecraft:iron_door, minecraft:wooden_pressure_plate, minecraft:unlit_redstone_torch, minecraft:redstone_torch, minecraft:stone_button, minecraft:snow_layer, minecraft:cactus, minecraft:reeds, minecraft:portal, minecraft:cake, minecraft:unpowered_repeater, minecraft:powered_repeater, minecraft:trapdoor, minecraft:pumpkin_stem, minecraft:melon_stem, minecraft:vine, minecraft:waterlily, minecraft:nether_wart, minecraft:end_portal, minecraft:cocoa, minecraft:tripwire_hook, minecraft:flower_pot, minecraft:carrots, minecraft:potatoes, minecraft:wooden_button, minecraft:light_weighted_pressure_plate, minecraft:heavy_weighted_pressure_plate, minecraft:unpowered_comparator, minecraft:powered_comparator, minecraft:activator_rail, minecraft:iron_trapdoor, minecraft:carpet, minecraft:double_plant, minecraft:standing_banner, minecraft:wall_banner, minecraft:spruce_door, minecraft:birch_door, minecraft:jungle_door, minecraft:acacia_door, minecraft:dark_oak_door, minecraft:chorus_plant, minecraft:chorus_flower, minecraft:beetroots")),
 	("NBT tags to ignore", ("string", "value=Pos, Motion, Rotation, FallDIstance, Fire, Air, OnGround, Dimension, PortalCooldown, UUIDMost, UUIDLeast, HurtTime, HurtByTimestamp, DeathTime, EggLayTime, Fuse, Lifetime, PlayerSpawned, EatingHaystack, wasOnGround, HurtBy, life, inGround, ownerName, Age, Thrower, PushX, PushZ, TransferCooldown, SuccessCount, LastOutput, conditionMet, OwnerUUIDMost, OwnerUUIDLeast, Life, Levels, BrewTime, OutputSignal, CookTime, CookTimeTotal")),
+	("Save the command to a file instead of to a Command Block", False),
 	("Ignore maximum Command Block command length", False)
 )
 
@@ -62,6 +67,7 @@ def perform(level, box, options):
 		if materials.block_map[block_id] in block_names_to_enqueue:
 			blocks_to_enqueue.append(block_id)
 	nbt_tags_to_ignore = re.split("\\s*,\\s*", options["NBT tags to ignore"]) + ["x", "y", "z"]
+	save_command_to_file = options["Save the command to a file instead of to a Command Block"]
 	ignore_maximum_command_block_command_length = options["Ignore maximum Command Block command length"]
 	add_credits = True
 
@@ -69,23 +75,26 @@ def perform(level, box, options):
 	first_element = True
 
 	if include_commandblockoutput_command:
-		command += "{id:\"MinecartCommandBlock\",Command:\"gamerule commandBlockOutput false\"}"
+		command += "\n\t{id:\"MinecartCommandBlock\",Command:\"gamerule commandBlockOutput false\"}"
 		first_element = False
 
 	if include_logadmincommands_command:
 		if not first_element:
 			command += ","
 		first_element = False
-		command += "{id:\"MinecartCommandBlock\",Command:\"gamerule logAdminCommands false\"}"
+		command += "\n\t{id:\"MinecartCommandBlock\",Command:\"gamerule logAdminCommands false\"}"
 
 	if add_initialization_commands:
 		file_name = mcplatform.askOpenFile("Select the text file containing the initialization commands...", False, ["txt"])
 		if file_name is not None:
-			for line in open(file_name).read().splitlines():
-				if not first_element:
-					command += ","
-				first_element = False
-				command += "{id:\"MinecartCommandBlock\",Command:\"" + escape_string(line) + "\"}"
+			input = open(file_name)
+			if input is not None:
+				for line in input.read().splitlines():
+					if not first_element:
+						command += ","
+					first_element = False
+					command += "\n\t{id:\"MinecartCommandBlock\",Command:\"" + escape_string(line) + "\"}"
+				input.close()
 
 	if include_blocks:
 		if include_air:
@@ -101,9 +110,9 @@ def perform(level, box, options):
 					command += ","
 				first_element = False
 				if volume(cuboid[0][0], cuboid[0][1], cuboid[0][2], cuboid[1][0], cuboid[1][1], cuboid[1][2]) == 1:
-					command += "{id:\"MinecartCommandBlock\",Command:\"setblock ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
+					command += "\n\t{id:\"MinecartCommandBlock\",Command:\"setblock ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
 				else:
-					command += "{id:\"MinecartCommandBlock\",Command:\"fill ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
+					command += "\n\t{id:\"MinecartCommandBlock\",Command:\"fill ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
 
 		blocks = []
 		for x in xrange(box.minx, box.maxx):
@@ -134,14 +143,14 @@ def perform(level, box, options):
 									if not first_element:
 										command += ","
 									first_element = False
-									command += command_part
+									command += "\n\t" + command_part
 								else:
 									enqueued.append(command_part)
 		for enqueued_command in enqueued:
 			if not first_element:
 				command += ","
 			first_element = False
-			command += enqueued_command
+			command += "\n\t" + enqueued_command
 
 	if include_entities:
 		for (chunk, slices, point) in level.getChunkSlices(box):
@@ -153,48 +162,64 @@ def perform(level, box, options):
 					if not first_element:
 						command += ","
 					first_element = False
-					command += "{id:\"MinecartCommandBlock\",Command:\"summon " + entity["id"].value + " ~" + (entity_x - execution_center[0]) + " ~" + (entity_y - execution_center[1]) + " ~" + (entity_z - execution_center[2]) + " " + escape_string(nbt_to_string(entity, nbt_tags_to_ignore)) + "\"}"
+					command += "\n\t{id:\"MinecartCommandBlock\",Command:\"summon " + entity["id"].value + " ~" + (entity_x - execution_center[0]) + " ~" + (entity_y - execution_center[1]) + " ~" + (entity_z - execution_center[2]) + " " + escape_string(nbt_to_string(entity, nbt_tags_to_ignore)) + "\"}"
 
 	if add_finalization_commands:
 		file_name = mcplatform.askOpenFile("Select the text file containing the finalization commands...", False, ["txt"])
 		if file_name is not None:
-			for line in open(file_name).read().splitlines():
-				if not first_element:
-					command += ","
-				first_element = False
-				command += "{id:\"MinecartCommandBlock\",Command:\"" + escape_string(line) + "\"}"
+			input = open(file_name)
+			if input is not None:
+				for line in input.read().splitlines():
+					if not first_element:
+						command += ","
+					first_element = False
+					command += "\n\t{id:\"MinecartCommandBlock\",Command:\"" + escape_string(line) + "\"}"
+				input.close()
 
 	if add_credits:
 		if not first_element:
 			command += ","
 		first_element = False
-		command += "{id:\"MinecartCommandBlock\",Command:\"tellraw @a {\\\"text\\\":\\\"Generated with Mamo's \\\",\\\"color\\\":\\\"yellow\\\",\\\"extra\\\":[{\\\"text\\\":\\\"Structure spawner generator\\\",\\\"italic\\\":true},{\\\"text\\\":\\\". If you happen to speak Italian, check you his channel at \\\"},{\\\"text\\\":\\\"youtube.com/iMamoMC\\\",\\\"color\\\":\\\"blue\\\",\\\"clickEvent\\\":{\\\"action\\\":\\\"open_url\\\",\\\"value\\\":\\\"https://www.youtube.com/user/iMamoMC\\\"},\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":\\\"Click here to check out my channel!\\\"}},{\\\"text\\\":\\\".\\\"}]}\"}"
+		command += "\n\t{id:\"MinecartCommandBlock\",Command:\"tellraw @a {\\\"text\\\":\\\"Generated with Mamo's \\\",\\\"color\\\":\\\"yellow\\\",\\\"extra\\\":[{\\\"text\\\":\\\"Structure spawner generator\\\",\\\"italic\\\":true},{\\\"text\\\":\\\". If you happen to speak Italian, check you his channel at \\\"},{\\\"text\\\":\\\"youtube.com/iMamoMC\\\",\\\"color\\\":\\\"blue\\\",\\\"clickEvent\\\":{\\\"action\\\":\\\"open_url\\\",\\\"value\\\":\\\"https://www.youtube.com/user/iMamoMC\\\"},\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":\\\"Click here to check out my channel!\\\"}},{\\\"text\\\":\\\".\\\"}]}\"}"
 
 	if not first_element:
 		command += ","
-	command += "{id:\"MinecartCommandBlock\",Command:\"setblock ~ ~1 ~ minecraft:command_block 0 replace {auto:1b,Command:\\\"fill ~ ~-3 ~ ~ ~ ~ minecraft:air\\\"}\"},{id:\"MinecartCommandBlock\",Command:\"kill @e[type=MinecartCommandBlock,r=0]\"}]}]}"
+	command += "\n\t{id:\"MinecartCommandBlock\",Command:\"setblock ~ ~1 ~ minecraft:command_block 0 replace {auto:1b,Command:\\\"fill ~ ~-3 ~ ~ ~ ~ minecraft:air\\\"}\"},\n\t{id:\"MinecartCommandBlock\",Command:\"kill @e[type=MinecartCommandBlock,r=0]\"}\n]}]}"
 
-	if not ignore_maximum_command_block_command_length and len(command) > 32767:
+	unformatted_command = command.replace("\n", "").replace("\t", "")
+
+	if not ignore_maximum_command_block_command_length and len(unformatted_command) > 32767:
 		editor.Notify("Unfortunately no command could be generated, as it would be longer than the Command Block command length limit of 32767 characters.")
 		return
 
-	schematic = MCSchematic((1, 1, 1), None, None, level.materials)
-	schematic.setBlockAt(0, 0, 0, 137)
-	schematic.setBlockDataAt(0, 0, 0, 0)
-	command_block = TAG_Compound()
-	command_block["id"] = TAG_String("Control")
-	command_block["x"] = TAG_Int(0)
-	command_block["y"] = TAG_Int(0)
-	command_block["z"] = TAG_Int(0)
-	command_block["CustomName"] = TAG_String("@")
-	command_block["Command"] = TAG_String(command)
-	command_block["SuccessCount"] = TAG_Int(0)
-	command_block["TrackOutput"] = TAG_Byte(1)
-	command_block["powered"] = TAG_Byte(0)
-	command_block["auto"] = TAG_Byte(0)
-	command_block["conditionMet"] = TAG_Byte(0)
-	schematic.addTileEntity(command_block)
-	editor.addCopiedSchematic(schematic)
+	command_output = None
+	if save_command_to_file:
+		output_file = mcplatform.askSaveFile(None, "Select the text file to wich you want to save the command...", "command.txt", "txt", None)
+		if output_file is not None:
+			command_output = open(output_file, "w")
+
+	if save_command_to_file and command_output is not None:
+		command_output.write(command)
+		command_output.flush()
+		command_output.close()
+	else:
+		schematic = MCSchematic((1, 1, 1), None, None, level.materials)
+		schematic.setBlockAt(0, 0, 0, 137)
+		schematic.setBlockDataAt(0, 0, 0, 0)
+		command_block = TAG_Compound()
+		command_block["id"] = TAG_String("Control")
+		command_block["x"] = TAG_Int(0)
+		command_block["y"] = TAG_Int(0)
+		command_block["z"] = TAG_Int(0)
+		command_block["CustomName"] = TAG_String("@")
+		command_block["Command"] = TAG_String(unformatted_command)
+		command_block["SuccessCount"] = TAG_Int(0)
+		command_block["TrackOutput"] = TAG_Byte(1)
+		command_block["powered"] = TAG_Byte(0)
+		command_block["auto"] = TAG_Byte(0)
+		command_block["conditionMet"] = TAG_Byte(0)
+		schematic.addTileEntity(command_block)
+		editor.addCopiedSchematic(schematic)
 
 
 def escape_string(string):
