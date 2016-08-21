@@ -1,4 +1,5 @@
-# Structure spawner generator #
+# Structure spawner generator
+([download](https://github.com/xMamo/Structure-spawner-generator/releases/latest)) #
 Structure spawner generator is a simple MCEdit filter to convert any Minecraft
 structure to a single command which spawns the structure itself.
 
