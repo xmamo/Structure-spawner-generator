@@ -28,7 +28,7 @@ Block will contain the command to spawn the structure!
 
 
 ### Filter options ###
-So let's take a look at all avaiable options:
+So let's take a look at all available options:
  - **`Relative position`, `Forward offset`, `Left offset` and `Up offset`**:
    these options determine where the structure will be spawned relative to
    command execution point P. With `Forward offset` you set how many blocks of
