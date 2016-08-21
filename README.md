@@ -65,7 +65,7 @@ So let's take a look at all avaiable options:
    example, a torch needs to be placed on a block. To make sure everything gets
    spawned correctly, `Blocks to enqueue` contains a list of crucial blocks
    which have to be placed once everything else got placed. The list should
-   already be fine, however if you see one or more blocks popping of after
+   already be fine, however if you see one or more blocks popping off after
    structure spawning, you can add their ID here.
  - **`NBT tags to ignore`**: as you might know, some blocks (for example Command
    Blocks) require additional data through the use of so-called NBT tags (like
