@@ -180,7 +180,7 @@ def perform(level, box, options):
 						unformatted_command += ","
 					first_element = False
 					command_part = "{id:\"MinecartCommandBlock\",Command:\"summon " + entity["id"].value + " ~" + (entity_x - execution_center[0]) + " ~" + (entity_y - execution_center[1]) + " ~" + (entity_z - execution_center[2]) + " " + escape_string(nbt_to_string(entity, nbt_tags_to_ignore)) + "\"}"
-					command += "\n\t" command_part
+					command += "\n\t" + command_part
 					unformatted_command += command_part
 
 	if add_finalization_commands:
