@@ -72,17 +72,23 @@ def perform(level, box, options):
 	add_credits = True
 
 	command = "summon FallingSand ~ ~1 ~ {id:\"FallingSand\",Block:\"minecraft:redstone_block\",Time:1,Passengers:[{id:\"FallingSand\",Block:\"minecraft:activator_rail\",Time:1,Passengers:["
+	unformatted_command = command
 	first_element = True
 
 	if include_commandblockoutput_command:
-		command += "\n\t{id:\"MinecartCommandBlock\",Command:\"gamerule commandBlockOutput false\"}"
+		command_part = "{id:\"MinecartCommandBlock\",Command:\"gamerule commandBlockOutput false\"}"
+		command += "\n\t" + command_part
+		unformatted_command += command_part
 		first_element = False
 
 	if include_logadmincommands_command:
 		if not first_element:
 			command += ","
+			unformatted_command += ","
 		first_element = False
-		command += "\n\t{id:\"MinecartCommandBlock\",Command:\"gamerule logAdminCommands false\"}"
+		command_part = "{id:\"MinecartCommandBlock\",Command:\"gamerule logAdminCommands false\"}"
+		command += "\n\t" + command_part
+		unformatted_command += command_part
 
 	if add_initialization_commands:
 		file_name = mcplatform.askOpenFile("Select the text file containing the initialization commands...", False, ["txt"])
@@ -92,8 +98,11 @@ def perform(level, box, options):
 				for line in input.read().splitlines():
 					if not first_element:
 						command += ","
+						unformatted_command += ","
 					first_element = False
-					command += "\n\t{id:\"MinecartCommandBlock\",Command:\"" + escape_string(line) + "\"}"
+					command_part = "{id:\"MinecartCommandBlock\",Command:\"" + escape_string(line) + "\"}"
+					command += "\n\t" + command_part
+					unformatted_command += command_part
 				input.close()
 
 	if include_blocks:
@@ -108,11 +117,14 @@ def perform(level, box, options):
 			for cuboid in subdivide_in_cuboids(air_blocks, 32768, False, True, False):
 				if not first_element:
 					command += ","
+					unformatted_command += ","
 				first_element = False
 				if volume(cuboid[0][0], cuboid[0][1], cuboid[0][2], cuboid[1][0], cuboid[1][1], cuboid[1][2]) == 1:
-					command += "\n\t{id:\"MinecartCommandBlock\",Command:\"setblock ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
+					command_part += "{id:\"MinecartCommandBlock\",Command:\"setblock ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
 				else:
-					command += "\n\t{id:\"MinecartCommandBlock\",Command:\"fill ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
+					command_part += "{id:\"MinecartCommandBlock\",Command:\"fill ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
+				command += "\n\t" + command_part
+				unformatted_command += command_part
 
 		blocks = []
 		for x in xrange(box.minx, box.maxx):
@@ -142,15 +154,19 @@ def perform(level, box, options):
 								if block[0] not in blocks_to_enqueue:
 									if not first_element:
 										command += ","
+										unformatted_command += ","
 									first_element = False
 									command += "\n\t" + command_part
+									unformatted_command += command_part
 								else:
 									enqueued.append(command_part)
 		for enqueued_command in enqueued:
 			if not first_element:
 				command += ","
+				unformatted_command += ","
 			first_element = False
 			command += "\n\t" + enqueued_command
+			unformatted_command += enqueued_command
 
 	if include_entities:
 		for (chunk, slices, point) in level.getChunkSlices(box):
@@ -161,8 +177,11 @@ def perform(level, box, options):
 				if (entity_x, entity_y, entity_z) in box:
 					if not first_element:
 						command += ","
+						unformatted_command += ","
 					first_element = False
-					command += "\n\t{id:\"MinecartCommandBlock\",Command:\"summon " + entity["id"].value + " ~" + (entity_x - execution_center[0]) + " ~" + (entity_y - execution_center[1]) + " ~" + (entity_z - execution_center[2]) + " " + escape_string(nbt_to_string(entity, nbt_tags_to_ignore)) + "\"}"
+					command_part = "{id:\"MinecartCommandBlock\",Command:\"summon " + entity["id"].value + " ~" + (entity_x - execution_center[0]) + " ~" + (entity_y - execution_center[1]) + " ~" + (entity_z - execution_center[2]) + " " + escape_string(nbt_to_string(entity, nbt_tags_to_ignore)) + "\"}"
+					command += "\n\t" command_part
+					unformatted_command += command_part
 
 	if add_finalization_commands:
 		file_name = mcplatform.askOpenFile("Select the text file containing the finalization commands...", False, ["txt"])
@@ -172,22 +191,28 @@ def perform(level, box, options):
 				for line in input.read().splitlines():
 					if not first_element:
 						command += ","
+						unformatted_command += ","
 					first_element = False
-					command += "\n\t{id:\"MinecartCommandBlock\",Command:\"" + escape_string(line) + "\"}"
+					command_part = "{id:\"MinecartCommandBlock\",Command:\"" + escape_string(line) + "\"}"
+					command += "\n\t" + command_part
+					unformatted_command += command_part
 				input.close()
 
 	if add_credits:
 		if not first_element:
 			command += ","
+			unformatted_command += ","
 		first_element = False
-		command += "\n\t{id:\"MinecartCommandBlock\",Command:\"tellraw @a {\\\"text\\\":\\\"Generated with Mamo's \\\",\\\"color\\\":\\\"yellow\\\",\\\"extra\\\":[{\\\"text\\\":\\\"Structure spawner generator\\\",\\\"italic\\\":true},{\\\"text\\\":\\\". If you happen to speak Italian, check you his channel at \\\"},{\\\"text\\\":\\\"youtube.com/iMamoMC\\\",\\\"color\\\":\\\"blue\\\",\\\"clickEvent\\\":{\\\"action\\\":\\\"open_url\\\",\\\"value\\\":\\\"https://www.youtube.com/user/iMamoMC\\\"},\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":\\\"Click here to check out my channel!\\\"}},{\\\"text\\\":\\\".\\\"}]}\"}"
+		command_part = "{id:\"MinecartCommandBlock\",Command:\"tellraw @a {\\\"text\\\":\\\"Generated with Mamo's \\\",\\\"color\\\":\\\"yellow\\\",\\\"extra\\\":[{\\\"text\\\":\\\"Structure spawner generator\\\",\\\"italic\\\":true},{\\\"text\\\":\\\". If you happen to speak Italian, check you his channel at \\\"},{\\\"text\\\":\\\"youtube.com/iMamoMC\\\",\\\"color\\\":\\\"blue\\\",\\\"clickEvent\\\":{\\\"action\\\":\\\"open_url\\\",\\\"value\\\":\\\"https://www.youtube.com/user/iMamoMC\\\"},\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":\\\"Click here to check out my channel!\\\"}},{\\\"text\\\":\\\".\\\"}]}\"}"
+		command += "\n\t" + command_part
+		unformatted_command += command_part
 
 	if not first_element:
 		command += ","
-	command += "\n\t{id:\"MinecartCommandBlock\",Command:\"setblock ~ ~1 ~ minecraft:command_block 0 replace {auto:1b,Command:\\\"fill ~ ~-3 ~ ~ ~ ~ minecraft:air\\\"}\"},\n\t{id:\"MinecartCommandBlock\",Command:\"kill @e[type=MinecartCommandBlock,r=0]\"}\n]}]}"
-
-	unformatted_command = command.replace("\n", "").replace("\t", "")
-
+		unformatted_command += ","
+	command += "{id:\"MinecartCommandBlock\",Command:\"setblock ~ ~1 ~ minecraft:command_block 0 replace {auto:1b,Command:\\\"fill ~ ~-3 ~ ~ ~ ~ minecraft:air\\\"}\"},\n\t{id:\"MinecartCommandBlock\",Command:\"kill @e[type=MinecartCommandBlock,r=0]\"}\n]}]}"
+	unformatted_command += "{id:\"MinecartCommandBlock\",Command:\"setblock ~ ~1 ~ minecraft:command_block 0 replace {auto:1b,Command:\\\"fill ~ ~-3 ~ ~ ~ ~ minecraft:air\\\"}\"},{id:\"MinecartCommandBlock\",Command:\"kill @e[type=MinecartCommandBlock,r=0]\"}]}]}"
+	
 	if not ignore_maximum_command_block_command_length and len(unformatted_command) > 32767:
 		editor.Notify("Unfortunately no command could be generated, as it would be longer than the Command Block command length limit of 32767 characters.")
 		return
