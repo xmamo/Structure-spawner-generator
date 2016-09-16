@@ -120,9 +120,9 @@ def perform(level, box, options):
 					unformatted_command += ","
 				first_element = False
 				if volume(cuboid[0][0], cuboid[0][1], cuboid[0][2], cuboid[1][0], cuboid[1][1], cuboid[1][2]) == 1:
-					command_part += "{id:\"MinecartCommandBlock\",Command:\"setblock ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
+					command_part = "{id:\"MinecartCommandBlock\",Command:\"setblock ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
 				else:
-					command_part += "{id:\"MinecartCommandBlock\",Command:\"fill ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
+					command_part = "{id:\"MinecartCommandBlock\",Command:\"fill ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
 				command += "\n\t" + command_part
 				unformatted_command += command_part
 
@@ -219,7 +219,7 @@ def perform(level, box, options):
 
 	command_output = None
 	if save_command_to_file:
-		output_file = mcplatform.askSaveFile(None, "Select the text file to wich you want to save the command...", "command.txt", "txt", None)
+		output_file = mcplatform.askSaveFile(None, "Select the text file to wich you want to save the command...", "command.txt", "Text file (*.txt)\0*.txt\0", None)
 		if output_file is not None:
 			command_output = open(output_file, "w")
 
