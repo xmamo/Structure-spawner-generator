@@ -132,8 +132,7 @@ def perform(level, box, options):
 			for y in xrange(box.miny, box.maxy):
 				blocks[x - box.minx].append([])
 				for z in xrange(box.minz, box.maxz):
-					block_id = level.blockAt(x, y, z)
-					blocks[x - box.minx][y - box.miny].append((block_id, level.blockDataAt(x, y, z), level.tileEntityAt(x, y, z)))
+					blocks[x - box.minx][y - box.miny].append((level.blockAt(x, y, z), level.blockDataAt(x, y, z), level.tileEntityAt(x, y, z)))
 		enqueued = []
 		for x in xrange(0, len(blocks)):
 			for y in xrange(0, len(blocks[x])):
@@ -210,8 +209,12 @@ def perform(level, box, options):
 	if not first_element:
 		command += ","
 		unformatted_command += ","
-	command += "{id:\"minecraft:commandblock_minecart\",Command:\"setblock ~ ~1 ~ minecraft:command_block 0 replace {auto:1b,Command:\\\"fill ~ ~-3 ~ ~ ~ ~ minecraft:air\\\"}\"},\n\t{id:\"minecraft:commandblock_minecart\",Command:\"kill @e[type=minecraft:commandblock_minecart,r=0]\"}\n]}]}"
-	unformatted_command += "{id:\"minecraft:commandblock_minecart\",Command:\"setblock ~ ~1 ~ minecraft:command_block 0 replace {auto:1b,Command:\\\"fill ~ ~-3 ~ ~ ~ ~ minecraft:air\\\"}\"},{id:\"minecraft:commandblock_minecart\",Command:\"kill @e[type=minecraft:commandblock_minecart,r=0]\"}]}]}"
+	command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"setblock ~ ~1 ~ minecraft:command_block 0 replace {auto:1b,Command:\\\"fill ~ ~-3 ~ ~ ~ ~ minecraft:air\\\"}\"}"
+	command += "\n\t" + command_part
+	unformatted_command += command_part
+	command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"kill @e[type=minecraft:commandblock_minecart,r=0]\"}\n]}]}"
+	command += ",\n\t" + command_part
+	unformatted_command += "," + command_part
 	
 	if not ignore_maximum_command_block_command_length and len(unformatted_command) > 32767:
 		editor.Notify("Unfortunately no command could be generated, as it would be longer than the Command Block command length limit of 32767 characters.")
