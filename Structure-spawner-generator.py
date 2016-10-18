@@ -71,12 +71,12 @@ def perform(level, box, options):
 	ignore_maximum_command_block_command_length = options["Ignore maximum Command Block command length"]
 	add_credits = True
 
-	command = "summon FallingSand ~ ~1 ~ {id:\"FallingSand\",Block:\"minecraft:redstone_block\",Time:1,Passengers:[{id:\"FallingSand\",Block:\"minecraft:activator_rail\",Time:1,Passengers:["
+	command = "summon minecraft:falling_block ~ ~1 ~ {id:\"minecraft:falling_block\",Block:\"minecraft:redstone_block\",Time:1,Passengers:[{id:\"minecraft:falling_block\",Block:\"minecraft:activator_rail\",Time:1,Passengers:["
 	unformatted_command = command
 	first_element = True
 
 	if include_commandblockoutput_command:
-		command_part = "{id:\"MinecartCommandBlock\",Command:\"gamerule commandBlockOutput false\"}"
+		command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"gamerule commandBlockOutput false\"}"
 		command += "\n\t" + command_part
 		unformatted_command += command_part
 		first_element = False
@@ -86,7 +86,7 @@ def perform(level, box, options):
 			command += ","
 			unformatted_command += ","
 		first_element = False
-		command_part = "{id:\"MinecartCommandBlock\",Command:\"gamerule logAdminCommands false\"}"
+		command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"gamerule logAdminCommands false\"}"
 		command += "\n\t" + command_part
 		unformatted_command += command_part
 
@@ -100,7 +100,7 @@ def perform(level, box, options):
 						command += ","
 						unformatted_command += ","
 					first_element = False
-					command_part = "{id:\"MinecartCommandBlock\",Command:\"" + escape_string(line) + "\"}"
+					command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"" + escape_string(line) + "\"}"
 					command += "\n\t" + command_part
 					unformatted_command += command_part
 				input.close()
@@ -120,9 +120,9 @@ def perform(level, box, options):
 					unformatted_command += ","
 				first_element = False
 				if volume(cuboid[0][0], cuboid[0][1], cuboid[0][2], cuboid[1][0], cuboid[1][1], cuboid[1][2]) == 1:
-					command_part = "{id:\"MinecartCommandBlock\",Command:\"setblock ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
+					command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"setblock ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
 				else:
-					command_part = "{id:\"MinecartCommandBlock\",Command:\"fill ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
+					command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"fill ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
 				command += "\n\t" + command_part
 				unformatted_command += command_part
 
@@ -143,9 +143,9 @@ def perform(level, box, options):
 						for cuboid in subdivide_in_cuboids(blocks, 32768, False, (block[0], block[1], block[2]), (-1, 0, None)):
 							if block[0] != 0 or (block[0] == 0 and include_air):
 								if volume(cuboid[0][0], cuboid[0][1], cuboid[0][2], cuboid[1][0], cuboid[1][1], cuboid[1][2]) == 1:
-									command_part = "{id:\"MinecartCommandBlock\",Command:\"setblock ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " " + materials.block_map[block[0]]
+									command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"setblock ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " " + materials.block_map[block[0]]
 								else:
-									command_part = "{id:\"MinecartCommandBlock\",Command:\"fill ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] + box.minz - execution_center[2]) + " " + materials.block_map[block[0]]
+									command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"fill ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] + box.minz - execution_center[2]) + " " + materials.block_map[block[0]]
 								if block[1] != 0 and block[2] is None:
 									command_part += " " + str(block[1])
 								if block[2] is not None:
@@ -179,7 +179,7 @@ def perform(level, box, options):
 						command += ","
 						unformatted_command += ","
 					first_element = False
-					command_part = "{id:\"MinecartCommandBlock\",Command:\"summon " + entity["id"].value + " ~" + (entity_x - execution_center[0]) + " ~" + (entity_y - execution_center[1]) + " ~" + (entity_z - execution_center[2]) + " " + escape_string(nbt_to_string(entity, nbt_tags_to_ignore)) + "\"}"
+					command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"summon " + entity["id"].value + " ~" + (entity_x - execution_center[0]) + " ~" + (entity_y - execution_center[1]) + " ~" + (entity_z - execution_center[2]) + " " + escape_string(nbt_to_string(entity, nbt_tags_to_ignore)) + "\"}"
 					command += "\n\t" + command_part
 					unformatted_command += command_part
 
@@ -193,7 +193,7 @@ def perform(level, box, options):
 						command += ","
 						unformatted_command += ","
 					first_element = False
-					command_part = "{id:\"MinecartCommandBlock\",Command:\"" + escape_string(line) + "\"}"
+					command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"" + escape_string(line) + "\"}"
 					command += "\n\t" + command_part
 					unformatted_command += command_part
 				input.close()
@@ -203,15 +203,15 @@ def perform(level, box, options):
 			command += ","
 			unformatted_command += ","
 		first_element = False
-		command_part = "{id:\"MinecartCommandBlock\",Command:\"tellraw @p {\\\"text\\\":\\\"Generated with Mamo's \\\",\\\"color\\\":\\\"yellow\\\",\\\"extra\\\":[{\\\"text\\\":\\\"Structure spawner generator\\\",\\\"color\\\":\\\"blue\\\",\\\"clickEvent\\\":{\\\"action\\\":\\\"open_url\\\",\\\"value\\\":\\\"https://github.com/xMamo/Structure-spawner-generator\\\"},\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":\\\"Click here if you want this filter too!\\\"}},\\\".\\\"]}\"}"
+		command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"tellraw @p {\\\"text\\\":\\\"Generated with Mamo's \\\",\\\"color\\\":\\\"yellow\\\",\\\"extra\\\":[{\\\"text\\\":\\\"Structure spawner generator\\\",\\\"color\\\":\\\"blue\\\",\\\"clickEvent\\\":{\\\"action\\\":\\\"open_url\\\",\\\"value\\\":\\\"https://github.com/xMamo/Structure-spawner-generator\\\"},\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":\\\"Click here if you want this filter too!\\\"}},\\\".\\\"]}\"}"
 		command += "\n\t" + command_part
 		unformatted_command += command_part
 
 	if not first_element:
 		command += ","
 		unformatted_command += ","
-	command += "{id:\"MinecartCommandBlock\",Command:\"setblock ~ ~1 ~ minecraft:command_block 0 replace {auto:1b,Command:\\\"fill ~ ~-3 ~ ~ ~ ~ minecraft:air\\\"}\"},\n\t{id:\"MinecartCommandBlock\",Command:\"kill @e[type=MinecartCommandBlock,r=0]\"}\n]}]}"
-	unformatted_command += "{id:\"MinecartCommandBlock\",Command:\"setblock ~ ~1 ~ minecraft:command_block 0 replace {auto:1b,Command:\\\"fill ~ ~-3 ~ ~ ~ ~ minecraft:air\\\"}\"},{id:\"MinecartCommandBlock\",Command:\"kill @e[type=MinecartCommandBlock,r=0]\"}]}]}"
+	command += "{id:\"minecraft:commandblock_minecart\",Command:\"setblock ~ ~1 ~ minecraft:command_block 0 replace {auto:1b,Command:\\\"fill ~ ~-3 ~ ~ ~ ~ minecraft:air\\\"}\"},\n\t{id:\"minecraft:commandblock_minecart\",Command:\"kill @e[type=minecraft:commandblock_minecart,r=0]\"}\n]}]}"
+	unformatted_command += "{id:\"minecraft:commandblock_minecart\",Command:\"setblock ~ ~1 ~ minecraft:command_block 0 replace {auto:1b,Command:\\\"fill ~ ~-3 ~ ~ ~ ~ minecraft:air\\\"}\"},{id:\"minecraft:commandblock_minecart\",Command:\"kill @e[type=minecraft:commandblock_minecart,r=0]\"}]}]}"
 	
 	if not ignore_maximum_command_block_command_length and len(unformatted_command) > 32767:
 		editor.Notify("Unfortunately no command could be generated, as it would be longer than the Command Block command length limit of 32767 characters.")
