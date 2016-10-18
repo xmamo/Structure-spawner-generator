@@ -203,7 +203,7 @@ def perform(level, box, options):
 			command += ","
 			unformatted_command += ","
 		first_element = False
-		command_part = "{id:\"MinecartCommandBlock\",Command:\"tellraw @a {\\\"text\\\":\\\"Generated with Mamo's \\\",\\\"color\\\":\\\"yellow\\\",\\\"extra\\\":[{\\\"text\\\":\\\"Structure spawner generator\\\",\\\"italic\\\":true},{\\\"text\\\":\\\". If you happen to speak Italian, check you his channel at \\\"},{\\\"text\\\":\\\"youtube.com/iMamoMC\\\",\\\"color\\\":\\\"blue\\\",\\\"clickEvent\\\":{\\\"action\\\":\\\"open_url\\\",\\\"value\\\":\\\"https://www.youtube.com/user/iMamoMC\\\"},\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":\\\"Click here to check out my channel!\\\"}},{\\\"text\\\":\\\".\\\"}]}\"}"
+		command_part = "{id:\"MinecartCommandBlock\",Command:\"tellraw @p {\\\"text\\\":\\\"Generated with Mamo's \\\",\\\"color\\\":\\\"yellow\\\",\\\"extra\\\":[{\\\"text\\\":\\\"Structure spawner generator\\\",\\\"color\\\":\\\"blue\\\",\\\"clickEvent\\\":{\\\"action\\\":\\\"open_url\\\",\\\"value\\\":\\\"https://github.com/xMamo/Structure-spawner-generator\\\"},\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":\\\"Click here if you want this filter too!\\\"}},\\\".\\\"]}\"}"
 		command += "\n\t" + command_part
 		unformatted_command += command_part
 
