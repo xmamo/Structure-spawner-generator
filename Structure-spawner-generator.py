@@ -31,6 +31,7 @@ inputs = (
 	("Up offset", 0),
 	("Include air", False),
 	("Include blocks", True),
+	("Include null block data", False),
 	("Include entities", False),
 	("Include \"gamerule commandBlockOutput false\" command", True),
 	("Include \"gamerule logAdminCommands false\" command", True),
@@ -56,6 +57,7 @@ def perform(level, box, options):
 		execution_center = (box.maxx + options["Forward offset"] - 1, box.miny - options["Up offset"] + 2, (box.minz + box.maxz) // 2 - options["Left offset"])
 	include_air = options["Include air"]
 	include_blocks = options["Include blocks"]
+	include_null_block_data = options["Include null block data"]
 	include_entities = options["Include entities"]
 	include_commandblockoutput_command = options["Include \"gamerule commandBlockOutput false\" command"]
 	include_logadmincommands_command = options["Include \"gamerule logAdminCommands false\" command"]
@@ -120,9 +122,12 @@ def perform(level, box, options):
 					unformatted_command += ","
 				first_element = False
 				if volume(cuboid[0][0], cuboid[0][1], cuboid[0][2], cuboid[1][0], cuboid[1][1], cuboid[1][2]) == 1:
-					command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"setblock ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
+					command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"setblock ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " minecraft:air"
 				else:
-					command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"fill ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] + box.minz - execution_center[2]) + " minecraft:air\"}"
+					command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"fill ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] + box.minz - execution_center[2]) + " minecraft:air"
+				if include_null_block_data:
+					command_part += " 0"
+				command_part += "\"}"
 				command += "\n\t" + command_part
 				unformatted_command += command_part
 
@@ -145,10 +150,10 @@ def perform(level, box, options):
 									command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"setblock ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " " + materials.block_map[block[0]]
 								else:
 									command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"fill ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] + box.minz - execution_center[2]) + " " + materials.block_map[block[0]]
-								if block[1] != 0 and block[2] is None:
+								if include_null_block_data or (block[1] != 0 and block[2] is not None):
 									command_part += " " + str(block[1])
 								if block[2] is not None:
-									command_part += " " + str(block[1]) + " replace " + escape_string(nbt_to_string(block[2], nbt_tags_to_ignore))
+									command_part += " replace " + escape_string(nbt_to_string(block[2], nbt_tags_to_ignore))
 								command_part += "\"}"
 								if block[0] not in blocks_to_enqueue:
 									if not first_element:
@@ -209,7 +214,10 @@ def perform(level, box, options):
 	if not first_element:
 		command += ","
 		unformatted_command += ","
-	command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"setblock ~ ~1 ~ minecraft:command_block 0 replace {auto:1b,Command:\\\"fill ~ ~-3 ~ ~ ~ ~ minecraft:air\\\"}\"}"
+	command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"setblock ~ ~1 ~ minecraft:command_block 0 replace {auto:1b,Command:\\\"fill ~ ~-3 ~ ~ ~ ~ minecraft:air"
+	if include_null_block_data:
+		command_part += " 0"
+	command_part += "\\\"}\"}"
 	command += "\n\t" + command_part
 	unformatted_command += command_part
 	command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"kill @e[type=minecraft:commandblock_minecart,r=0]\"}\n]}]}"
