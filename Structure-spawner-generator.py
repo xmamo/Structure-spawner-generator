@@ -16,6 +16,7 @@
 
 import inspect
 import re
+from decimal import Decimal
 
 import mcplatform
 from pymclevel import materials
@@ -150,7 +151,7 @@ def perform(level, box, options):
 									command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"setblock ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " " + materials.block_map[block[0]]
 								else:
 									command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"fill ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] + box.minz - execution_center[2]) + " " + materials.block_map[block[0]]
-								if include_null_block_data or (block[1] != 0 and block[2] is not None):
+								if include_null_block_data or block[1] != 0 or (block[1] == 0 and block[2] is not None):
 									command_part += " " + str(block[1])
 								if block[2] is not None:
 									command_part += " replace " + escape_string(nbt_to_string(block[2], nbt_tags_to_ignore))
@@ -183,7 +184,7 @@ def perform(level, box, options):
 						command += ","
 						unformatted_command += ","
 					first_element = False
-					command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"summon " + entity["id"].value + " ~" + (entity_x - execution_center[0]) + " ~" + (entity_y - execution_center[1]) + " ~" + (entity_z - execution_center[2]) + " " + escape_string(nbt_to_string(entity, nbt_tags_to_ignore)) + "\"}"
+					command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"summon " + str(entity["id"].value) + " ~" + str((Decimal(entity_x - execution_center[0]) - Decimal("0.5")).normalize()) + " ~" + str((Decimal(entity_y - execution_center[1]) - Decimal("0.0625")).normalize()) + " ~" + str((Decimal(entity_z - execution_center[2]) - Decimal("0.5")).normalize()) + " " + escape_string(nbt_to_string(entity, nbt_tags_to_ignore)) + "\"}"
 					command += "\n\t" + command_part
 					unformatted_command += command_part
 
@@ -223,7 +224,7 @@ def perform(level, box, options):
 	command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"kill @e[type=minecraft:commandblock_minecart,r=0]\"}\n]}]}"
 	command += ",\n\t" + command_part
 	unformatted_command += "," + command_part
-	
+
 	if not ignore_maximum_command_block_command_length and len(unformatted_command) > 32767:
 		editor.Notify("Unfortunately no command could be generated, as it would be longer than the Command Block command length limit of 32767 characters.")
 		return
