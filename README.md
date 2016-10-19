@@ -33,12 +33,7 @@ Block will contain the command to spawn the structure!
 So let's take a look at all available options:
  - **`Relative position`, `Forward offset`, `Left offset` and `Up offset`**:
    these options determine where the structure will be spawned relative to
-   command execution point P. With `Forward offset` you set how many blocks of
-   distance have to be kept between P and the structure which will be spawned.
-   The direction of this distance is set by `Relative position`. `Up offset`
-   determines how many blocks the structure has to be moved up, relative to P.
-   `Left offset` determines how many blocks the structure has to be moved left,
-   relative to P, and relative to `Relative position`.
+   command execution point.
  - **`Include air`**: should air blocks be explicitly placed when the structure
    gets spawned? For example, if the structure gets spawned on an uneven
    terrain, should the area be cleared first?
@@ -47,6 +42,10 @@ So let's take a look at all available options:
    want to spawn selected entities along with the structure using `Include
    entities`. If you want just to spawn the selected entities, select only
    `Include entities`.
+ - **`Include null block data`**: if a block has 0 as data value and no data
+   tag, it will be placed by the structure spawner using `setblock <x> <y> <z>
+   <block>`. Enable this setting to place the block using `setblock <x> <y> <z>
+   <block> 0` instead.
  - **`Include "gamerule commandBlockOutput false" command` and `Include
    "gamerule logAdminCommands false" command`**: if enabled, `gamerule
    commandBlockOutput false` and/or `gamerule logAdminCommands false` command(s)
