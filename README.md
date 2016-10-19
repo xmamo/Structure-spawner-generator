@@ -20,7 +20,7 @@ structure you want to turn into a command. Click on the `Filter` item and from
 the `Filter` drop-down select `Structure spawner generator`. You should get
 something like this:
 
-![Filter overview](https://raw.githubusercontent.com/xMamo/Structure-spawner-generator/master/filter_overview.png)
+![Filter overview](https://raw.githubusercontent.com/xMamo/Structure-spawner-generator/master/filter-overview.png)
 
 Tweak the settings as you wish, and when you're done, press `Filter`. If
 `Save the command to a file instead of to a Command Block` isn't selected,
@@ -86,3 +86,7 @@ So let's take a look at all available options:
    you have only slightly exceeded this limit, you can enable this option to
    take a look at the command and see what might could be done to make it
    less than 32768 characters long.
+
+
+## Italian tutorial video ##
+[![Italian tutorial video](https://raw.githubusercontent.com/xMamo/Structure-spawner-generator/master/italian-tutorial-video-preview.png)](http://www.youtube.com/watch?v=2OgVyotqJ4g)
