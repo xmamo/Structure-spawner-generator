@@ -29,9 +29,9 @@ inputs = [
 	(
 		("Structure generation", "title"),
 		("Relative position", ("South", "East", "North", "West")),
-		("Forward offset", 2),
+		("Forward offset", 3),
 		("Right offset", 0),
-		("Up offset", 0),
+		("Up offset", 1),
 		("Include air", False),
 		("Include blocks", True),
 		("Include null block data", False),
@@ -41,7 +41,7 @@ inputs = [
 		("Add initialization commands", False),
 		("Add finalization commands", False),
 		("Blocks to enqueue", ("string", "value=minecraft:sapling, minecraft:bed, minecraft:golden_rail, minecraft:detector_rail, minecraft:tallgrass, minecraft:deadbush, minecraft:piston_head, minecraft:piston_extension, minecraft:yellow_flower, minecraft:red_flower, minecraft:brown_mushroom, minecraft:red_mushroom, minecraft:torch, minecraft:fire, minecraft:redstone_wire, minecraft:wheat, minecraft:standing_sign, minecraft:wooden_door, minecraft:ladder, minecraft:rail, minecraft:wall_sign, minecraft:lever, minecraft:stone_pressure_plate, minecraft:iron_door, minecraft:wooden_pressure_plate, minecraft:unlit_redstone_torch, minecraft:redstone_torch, minecraft:stone_button, minecraft:snow_layer, minecraft:cactus, minecraft:reeds, minecraft:portal, minecraft:cake, minecraft:unpowered_repeater, minecraft:powered_repeater, minecraft:trapdoor, minecraft:pumpkin_stem, minecraft:melon_stem, minecraft:vine, minecraft:waterlily, minecraft:nether_wart, minecraft:end_portal, minecraft:cocoa, minecraft:tripwire_hook, minecraft:flower_pot, minecraft:carrots, minecraft:potatoes, minecraft:wooden_button, minecraft:light_weighted_pressure_plate, minecraft:heavy_weighted_pressure_plate, minecraft:unpowered_comparator, minecraft:powered_comparator, minecraft:activator_rail, minecraft:iron_trapdoor, minecraft:carpet, minecraft:double_plant, minecraft:standing_banner, minecraft:wall_banner, minecraft:spruce_door, minecraft:birch_door, minecraft:jungle_door, minecraft:acacia_door, minecraft:dark_oak_door, minecraft:chorus_plant, minecraft:chorus_flower, minecraft:beetroots")),
-		("NBT tags to ignore", ("string", "value=Pos, Motion, Rotation, FallDIstance, Fire, Air, OnGround, Dimension, PortalCooldown, UUIDMost, UUIDLeast, HurtTime, HurtByTimestamp, DeathTime, EggLayTime, Fuse, Lifetime, PlayerSpawned, EatingHaystack, wasOnGround, HurtBy, life, inGround, ownerName, Age, Thrower, PushX, PushZ, TransferCooldown, SuccessCount, LastOutput, conditionMet, OwnerUUIDMost, OwnerUUIDLeast, Life, Levels, BrewTime, OutputSignal, CookTime, CookTimeTotal")),
+		("NBT tags to ignore", ("string", "value=Pos, Motion, Rotation, FallDistance, Fire, Air, OnGround, Dimension, PortalCooldown, UUIDMost, UUIDLeast, HurtTime, HurtByTimestamp, DeathTime, EggLayTime, Fuse, Lifetime, PlayerSpawned, EatingHaystack, wasOnGround, HurtBy, life, inGround, ownerName, Age, Thrower, PushX, PushZ, TransferCooldown, SuccessCount, LastOutput, conditionMet, OwnerUUIDMost, OwnerUUIDLeast, Life, Levels, BrewTime, OutputSignal, CookTime, CookTimeTotal")),
 		("Save the command to a file instead of to a Command Block", False),
 		("Ignore maximum Command Block command length", False)
 	),
@@ -360,7 +360,7 @@ def perform(level, box, options):
 	if save_command_to_file:
 		output_file = mcplatform.askSaveFile(None, "Select the text file to wich you want to save the command...", "command.txt", "Text file (*.txt)\0*.txt\0", None)
 		if output_file is not None:
-			command_output = open(output_file, "w")
+			command_output = open(output_file, mode="w")
 
 	if save_command_to_file and command_output is not None:
 		command_output.write(command)
