@@ -1,4 +1,4 @@
-# Structure spawner generator
+# Mamo's One Command Generator
 # Copyright (C) 2016  Matteo Morena
 #
 # This program is free software: you can redistribute it and/or modify
@@ -23,39 +23,54 @@ from pymclevel import materials
 from pymclevel.nbt import TAG_Compound, TAG_String, TAG_Int, TAG_List, TAG_Byte_Array, TAG_Short_Array, TAG_Int_Array, TAG_Byte, TAG_Short, TAG_Long, TAG_Float, TAG_Double
 from pymclevel.schematic import MCSchematic
 
-displayName = "Structure spawner generator"
+displayName = "Mamo's One Command Generator"
 
-inputs = (
-	("Relative position", ("North", "East", "South", "West")),
-	("Forward offset", 2),
-	("Left offset", 0),
-	("Up offset", 0),
-	("Include air", False),
-	("Include blocks", True),
-	("Include null block data", False),
-	("Include entities", False),
-	("Include \"gamerule commandBlockOutput false\" command", True),
-	("Include \"gamerule logAdminCommands false\" command", True),
-	("Add initialization commands", False),
-	("Add finalization commands", False),
-	("Blocks to enqueue", ("string", "value=minecraft:sapling, minecraft:bed, minecraft:golden_rail, minecraft:detector_rail, minecraft:tallgrass, minecraft:deadbush, minecraft:piston_head, minecraft:piston_extension, minecraft:yellow_flower, minecraft:red_flower, minecraft:brown_mushroom, minecraft:red_mushroom, minecraft:torch, minecraft:fire, minecraft:redstone_wire, minecraft:wheat, minecraft:standing_sign, minecraft:wooden_door, minecraft:ladder, minecraft:rail, minecraft:wall_sign, minecraft:lever, minecraft:stone_pressure_plate, minecraft:iron_door, minecraft:wooden_pressure_plate, minecraft:unlit_redstone_torch, minecraft:redstone_torch, minecraft:stone_button, minecraft:snow_layer, minecraft:cactus, minecraft:reeds, minecraft:portal, minecraft:cake, minecraft:unpowered_repeater, minecraft:powered_repeater, minecraft:trapdoor, minecraft:pumpkin_stem, minecraft:melon_stem, minecraft:vine, minecraft:waterlily, minecraft:nether_wart, minecraft:end_portal, minecraft:cocoa, minecraft:tripwire_hook, minecraft:flower_pot, minecraft:carrots, minecraft:potatoes, minecraft:wooden_button, minecraft:light_weighted_pressure_plate, minecraft:heavy_weighted_pressure_plate, minecraft:unpowered_comparator, minecraft:powered_comparator, minecraft:activator_rail, minecraft:iron_trapdoor, minecraft:carpet, minecraft:double_plant, minecraft:standing_banner, minecraft:wall_banner, minecraft:spruce_door, minecraft:birch_door, minecraft:jungle_door, minecraft:acacia_door, minecraft:dark_oak_door, minecraft:chorus_plant, minecraft:chorus_flower, minecraft:beetroots")),
-	("NBT tags to ignore", ("string", "value=Pos, Motion, Rotation, FallDIstance, Fire, Air, OnGround, Dimension, PortalCooldown, UUIDMost, UUIDLeast, HurtTime, HurtByTimestamp, DeathTime, EggLayTime, Fuse, Lifetime, PlayerSpawned, EatingHaystack, wasOnGround, HurtBy, life, inGround, ownerName, Age, Thrower, PushX, PushZ, TransferCooldown, SuccessCount, LastOutput, conditionMet, OwnerUUIDMost, OwnerUUIDLeast, Life, Levels, BrewTime, OutputSignal, CookTime, CookTimeTotal")),
-	("Save the command to a file instead of to a Command Block", False),
-	("Ignore maximum Command Block command length", False)
-)
+inputs = [
+	(
+		("Structure generation", "title"),
+		("Relative position", ("South", "East", "North", "West")),
+		("Forward offset", 2),
+		("Right offset", 0),
+		("Up offset", 0),
+		("Include air", False),
+		("Include blocks", True),
+		("Include null block data", False),
+		("Include entities", False),
+		("Include \"gamerule commandBlockOutput false\" command", True),
+		("Include \"gamerule logAdminCommands false\" command", True),
+		("Add initialization commands", False),
+		("Add finalization commands", False),
+		("Blocks to enqueue", ("string", "value=minecraft:sapling, minecraft:bed, minecraft:golden_rail, minecraft:detector_rail, minecraft:tallgrass, minecraft:deadbush, minecraft:piston_head, minecraft:piston_extension, minecraft:yellow_flower, minecraft:red_flower, minecraft:brown_mushroom, minecraft:red_mushroom, minecraft:torch, minecraft:fire, minecraft:redstone_wire, minecraft:wheat, minecraft:standing_sign, minecraft:wooden_door, minecraft:ladder, minecraft:rail, minecraft:wall_sign, minecraft:lever, minecraft:stone_pressure_plate, minecraft:iron_door, minecraft:wooden_pressure_plate, minecraft:unlit_redstone_torch, minecraft:redstone_torch, minecraft:stone_button, minecraft:snow_layer, minecraft:cactus, minecraft:reeds, minecraft:portal, minecraft:cake, minecraft:unpowered_repeater, minecraft:powered_repeater, minecraft:trapdoor, minecraft:pumpkin_stem, minecraft:melon_stem, minecraft:vine, minecraft:waterlily, minecraft:nether_wart, minecraft:end_portal, minecraft:cocoa, minecraft:tripwire_hook, minecraft:flower_pot, minecraft:carrots, minecraft:potatoes, minecraft:wooden_button, minecraft:light_weighted_pressure_plate, minecraft:heavy_weighted_pressure_plate, minecraft:unpowered_comparator, minecraft:powered_comparator, minecraft:activator_rail, minecraft:iron_trapdoor, minecraft:carpet, minecraft:double_plant, minecraft:standing_banner, minecraft:wall_banner, minecraft:spruce_door, minecraft:birch_door, minecraft:jungle_door, minecraft:acacia_door, minecraft:dark_oak_door, minecraft:chorus_plant, minecraft:chorus_flower, minecraft:beetroots")),
+		("NBT tags to ignore", ("string", "value=Pos, Motion, Rotation, FallDIstance, Fire, Air, OnGround, Dimension, PortalCooldown, UUIDMost, UUIDLeast, HurtTime, HurtByTimestamp, DeathTime, EggLayTime, Fuse, Lifetime, PlayerSpawned, EatingHaystack, wasOnGround, HurtBy, life, inGround, ownerName, Age, Thrower, PushX, PushZ, TransferCooldown, SuccessCount, LastOutput, conditionMet, OwnerUUIDMost, OwnerUUIDLeast, Life, Levels, BrewTime, OutputSignal, CookTime, CookTimeTotal")),
+		("Save the command to a file instead of to a Command Block", False),
+		("Ignore maximum Command Block command length", False)
+	),
+	(
+		("Box generation", "title"),
+		("Generate surrounding box", False),
+		("Box wall material block", ("string", "value=minecraft:glass")),
+		("Box wall material data value", 0),
+		("Box floor material block", ("string", "value=minecraft:stone_slab")),
+		("Box floor material data value", 8),
+		("Box ceiling material block", ("string", "value=minecraft:stone_slab")),
+		("Box ceiling material data value", 0),
+		("Add box signs", False)
+	)
+]
 
 
 def perform(level, box, options):
 	editor = inspect.stack()[1][0].f_locals.get("self", None).editor
 
-	if options["Relative position"] == "North":
-		execution_center = ((box.minx + box.maxx) // 2 + options["Left offset"], box.miny - options["Up offset"] + 2, box.maxz + options["Forward offset"] - 1)
-	elif options["Relative position"] == "East":
-		execution_center = (box.minx - options["Forward offset"], box.miny - options["Up offset"] + 2, (box.minz + box.maxz) // 2 + options["Left offset"])
-	elif options["Relative position"] == "South":
-		execution_center = ((box.minx + box.maxx) // 2 - options["Left offset"], box.miny - options["Up offset"] + 2, box.minz - options["Forward offset"])
-	if options["Relative position"] == "West":
-		execution_center = (box.maxx + options["Forward offset"] - 1, box.miny - options["Up offset"] + 2, (box.minz + box.maxz) // 2 - options["Left offset"])
+	relative_position = options["Relative position"]
+	if relative_position == "North":
+		execution_center = ((box.minx + box.maxx) // 2 - options["Right offset"], box.miny - options["Up offset"] + 2, box.maxz + options["Forward offset"] - 1)
+	elif relative_position == "East":
+		execution_center = (box.minx - options["Forward offset"], box.miny - options["Up offset"] + 2, (box.minz + box.maxz) // 2 - options["Right offset"])
+	elif relative_position == "South":
+		execution_center = ((box.minx + box.maxx) // 2 + options["Right offset"], box.miny - options["Up offset"] + 2, box.minz - options["Forward offset"])
+	elif relative_position == "West":
+		execution_center = (box.maxx + options["Forward offset"] - 1, box.miny - options["Up offset"] + 2, (box.minz + box.maxz) // 2 + options["Right offset"])
 	include_air = options["Include air"]
 	include_blocks = options["Include blocks"]
 	include_null_block_data = options["Include null block data"]
@@ -64,14 +79,23 @@ def perform(level, box, options):
 	include_logadmincommands_command = options["Include \"gamerule logAdminCommands false\" command"]
 	add_initialization_commands = options["Add initialization commands"]
 	add_finalization_commands = options["Add finalization commands"]
-	block_names_to_enqueue = re.split("\\s*,\\s*", options["Blocks to enqueue"])
+	block_to_enqueue_input = re.split("\\s*,\\s*", options["Blocks to enqueue"].strip())
 	blocks_to_enqueue = []
 	for block_id in xrange(0, len(materials.block_map) - 1):
-		if materials.block_map[block_id] in block_names_to_enqueue:
+		if materials.block_map[block_id] in block_to_enqueue_input:
 			blocks_to_enqueue.append(block_id)
 	nbt_tags_to_ignore = re.split("\\s*,\\s*", options["NBT tags to ignore"]) + ["x", "y", "z"]
 	save_command_to_file = options["Save the command to a file instead of to a Command Block"]
 	ignore_maximum_command_block_command_length = options["Ignore maximum Command Block command length"]
+	generate_surrounding_box = options["Generate surrounding box"]
+	box_wall_material_block = options["Box wall material block"]
+	box_wall_material_data = options["Box wall material data value"]
+	box_floor_material_block = options["Box floor material block"]
+	box_floor_material_data = options["Box floor material data value"]
+	box_ceiling_material_block = options["Box ceiling material block"]
+	box_ceiling_material_data = options["Box ceiling material data value"]
+	add_box_signs = options["Add box signs"]
+
 	add_credits = True
 
 	command = "summon minecraft:falling_block ~ ~1 ~ {id:\"minecraft:falling_block\",Block:\"minecraft:redstone_block\",Time:1,Passengers:[{id:\"minecraft:falling_block\",Block:\"minecraft:activator_rail\",Time:1,Passengers:["
@@ -146,25 +170,24 @@ def perform(level, box, options):
 					block = blocks[x][y][z]
 					if block[0] >= 1:
 						for cuboid in subdivide_in_cuboids(blocks, 32768, False, (block[0], block[1], block[2]), (-1, 0, None)):
-							if block[0] != 0 or (block[0] == 0 and include_air):
-								if volume(cuboid[0][0], cuboid[0][1], cuboid[0][2], cuboid[1][0], cuboid[1][1], cuboid[1][2]) == 1:
-									command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"setblock ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " " + materials.block_map[block[0]]
-								else:
-									command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"fill ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] + box.minz - execution_center[2]) + " " + materials.block_map[block[0]]
-								if include_null_block_data or block[1] != 0 or (block[1] == 0 and block[2] is not None):
-									command_part += " " + str(block[1])
-								if block[2] is not None:
-									command_part += " replace " + escape_string(nbt_to_string(block[2], nbt_tags_to_ignore))
-								command_part += "\"}"
-								if block[0] not in blocks_to_enqueue:
-									if not first_element:
-										command += ","
-										unformatted_command += ","
-									first_element = False
-									command += "\n\t" + command_part
-									unformatted_command += command_part
-								else:
-									enqueued.append(command_part)
+							if volume(cuboid[0][0], cuboid[0][1], cuboid[0][2], cuboid[1][0], cuboid[1][1], cuboid[1][2]) == 1:
+								command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"setblock ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " " + materials.block_map[block[0]]
+							else:
+								command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"fill ~" + str(cuboid[0][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] + box.minz - execution_center[2]) + " " + materials.block_map[block[0]]
+							if include_null_block_data or block[1] != 0 or (block[1] == 0 and block[2] is not None):
+								command_part += " " + str(block[1])
+							if block[2] is not None:
+								command_part += " replace " + escape_string(nbt_to_string(block[2], nbt_tags_to_ignore))
+							command_part += "\"}"
+							if block[0] not in blocks_to_enqueue:
+								if not first_element:
+									command += ","
+									unformatted_command += ","
+								first_element = False
+								command += "\n\t" + command_part
+								unformatted_command += command_part
+							else:
+								enqueued.append(command_part)
 		for enqueued_command in enqueued:
 			if not first_element:
 				command += ","
@@ -187,6 +210,110 @@ def perform(level, box, options):
 					command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"summon " + str(entity["id"].value) + " ~" + str((Decimal(entity_x - execution_center[0]) - Decimal("0.5")).normalize()) + " ~" + str((Decimal(entity_y - execution_center[1]) - Decimal("0.0625")).normalize()) + " ~" + str((Decimal(entity_z - execution_center[2]) - Decimal("0.5")).normalize()) + " " + escape_string(nbt_to_string(entity, nbt_tags_to_ignore)) + "\"}"
 					command += "\n\t" + command_part
 					unformatted_command += command_part
+
+	if generate_surrounding_box:
+		floor_ceiling_blocks = []
+		for x in xrange(0, box.maxx - box.minx + 2):
+			floor_ceiling_blocks.append([])
+			floor_ceiling_blocks[x].append([])
+			for z in xrange(0, box.maxz - box.minz + 2):
+				floor_ceiling_blocks[x][0].append(True)
+		for cuboid in subdivide_in_cuboids(floor_ceiling_blocks, 32768, False, True, False):
+			if not first_element:
+				command += ","
+				unformatted_command += ","
+			first_element = False
+			command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"fill ~" + str(cuboid[0][0] - 1 + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] - 1 + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] - 1 + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] - 1 + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] - 1 + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] - 1 + box.minz - execution_center[2]) + " " + escape_string(box_floor_material_block)
+			if include_null_block_data or box_floor_material_data != 0:
+				command_part += " " + str(box_floor_material_data)
+			command_part += "\"}"
+			command += "\n\t" + command_part
+			unformatted_command += command_part
+
+			command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"fill ~" + str(cuboid[0][0] - 1 + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.maxy - execution_center[1]) + " ~" + str(cuboid[0][2] - 1 + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] - 1 + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.maxy - execution_center[1]) + " ~" + str(cuboid[1][2] - 1 + box.minz - execution_center[2]) + " " + escape_string(box_ceiling_material_block)
+			if include_null_block_data or box_ceiling_material_data != 0:
+				command_part += " " + str(box_ceiling_material_data)
+			command_part += "\"}"
+			command += ",\n\t" + command_part
+			unformatted_command += "," + command_part
+
+		wall_blocks = []
+		for x in xrange(0, box.maxx - box.minx + 2):
+			wall_blocks.append([])
+			for y in xrange(0, box.maxy - box.miny):
+				wall_blocks[x].append([])
+				for z in xrange(0, box.maxz - box.minz + 2):
+					if x == 0 or x == box.maxx - box.minx + 1 or z == 0 or z == box.maxz - box.minz + 1:
+						wall_blocks[x][y].append(True)
+					else:
+						wall_blocks[x][y].append(False)
+		for cuboid in subdivide_in_cuboids(wall_blocks, 32768, False, True, False):
+			if not first_element:
+				command += ","
+				unformatted_command += ","
+			first_element = False
+			command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"fill ~" + str(cuboid[0][0] - 1 + box.minx - execution_center[0]) + " ~" + str(cuboid[0][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[0][2] - 1 + box.minz - execution_center[2]) + " ~" + str(cuboid[1][0] - 1 + box.minx - execution_center[0]) + " ~" + str(cuboid[1][1] + box.miny - execution_center[1]) + " ~" + str(cuboid[1][2] - 1 + box.minz - execution_center[2]) + " " + escape_string(box_wall_material_block)
+			if include_null_block_data or box_wall_material_data != 0:
+				command_part += " " + str(box_wall_material_data)
+			command_part += "\"}"
+			command += "\n\t" + command_part
+			unformatted_command += command_part
+
+		if add_box_signs:
+			file_name = mcplatform.askOpenFile("Select the text file containing the signs to put on front of the box...", False, ["txt"])
+			if file_name is not None:
+				input = open(file_name)
+				if input is not None:
+					signs = {}
+					sign_iteration = -1
+					last_coordinate = (0, 0)
+					for line in input.read().splitlines():
+						if sign_iteration != -1 or len(line.strip()) > 0:
+							sign_iteration += 1
+							if sign_iteration == 0:
+								coordinates = re.split("\\s*,\\s*", line.strip())
+								last_coordinate = (int(coordinates[0]), int(coordinates[1]))
+								signs[last_coordinate] = []
+							else:
+								signs[last_coordinate].append(line)
+							if sign_iteration == 8:
+								sign_iteration = -1
+
+					for key in signs.keys():
+						if relative_position == "North":
+							sign_position = (box.minx - 1 + key[0] - execution_center[0], box.miny - 1 + key[1] - execution_center[1], box.maxz + 1 - execution_center[2])
+							sign_data = 3
+						elif relative_position == "East":
+							sign_position = (box.minx - 2 - execution_center[0], box.miny - 1 + key[1] - execution_center[1], box.minz - 1 + key[0] - execution_center[2])
+							sign_data = 4
+						elif relative_position == "South":
+							sign_position = (box.maxx - key[0] - execution_center[0], box.miny - 1 + key[1] - execution_center[1], box.minz - 2 - execution_center[2])
+							sign_data = 2
+						elif relative_position == "West":
+							sign_position = (box.maxx + 1 - execution_center[0], box.miny - 1 + key[1] - execution_center[1], box.maxz - key[0] - execution_center[2])
+							sign_data = 5
+
+						if not first_element:
+							command += ","
+							unformatted_command += ","
+						first_element = False
+						command_part = "{id:\"minecraft:commandblock_minecart\",Command:\"setblock ~" + str(sign_position[0]) + " ~" + str(sign_position[1]) + " ~" + str(sign_position[2]) + " minecraft:wall_sign " + str(sign_data) + " replace {"
+						if len(signs[key]) > 0:
+							for i in xrange(0, min(4, len(signs[key]))):
+								if i > 0:
+									command_part += ","
+								if signs[key][i].startswith("{"):
+									command_part += escape_string("Text" + str(i + 1) + ":\"" + escape_string("{\"text\":\"\",\"extra\":[" + signs[key][i] + "]"))
+								elif signs[key][i].startswith("["):
+									command_part += escape_string("Text" + str(i + 1) + ":\"" + escape_string("{\"text\":\"\",\"extra\":" + signs[key][i]))
+								else:
+									command_part += escape_string("Text" + str(i + 1) + ":\"" + escape_string("{\"text\":\"" + escape_string(signs[key][i]) + "\""))
+								if len(signs[key]) > i + 4 and len(signs[key][i + 4].strip()) > 0:
+									command_part += escape_string(escape_string(",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"" + escape_string(signs[key][i + 4]) + "\"}"))
+								command_part += "}\\\""
+						command_part += "}\"}"
+						command += "\n\t" + command_part
+						unformatted_command += command_part
 
 	if add_finalization_commands:
 		file_name = mcplatform.askOpenFile("Select the text file containing the finalization commands...", False, ["txt"])
