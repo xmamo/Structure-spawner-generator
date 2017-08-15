@@ -363,25 +363,18 @@ def perform(level, box, options):
 			command_output = open(output_file, mode="w")
 
 	if save_command_to_file and command_output is not None:
-		command_output.write(command)
+		command_output.write((command + "\n").encode("UTF-8"))
 		command_output.flush()
 		command_output.close()
 	else:
 		schematic = MCSchematic((1, 1, 1), None, None, level.materials)
 		schematic.setBlockAt(0, 0, 0, 137)
-		schematic.setBlockDataAt(0, 0, 0, 0)
 		command_block = TAG_Compound()
-		command_block["id"] = TAG_String("Control")
+		command_block["id"] = TAG_String("minecraft:command_block")
 		command_block["x"] = TAG_Int(0)
 		command_block["y"] = TAG_Int(0)
 		command_block["z"] = TAG_Int(0)
-		command_block["CustomName"] = TAG_String("@")
 		command_block["Command"] = TAG_String(unformatted_command)
-		command_block["SuccessCount"] = TAG_Int(0)
-		command_block["TrackOutput"] = TAG_Byte(1)
-		command_block["powered"] = TAG_Byte(0)
-		command_block["auto"] = TAG_Byte(0)
-		command_block["conditionMet"] = TAG_Byte(0)
 		schematic.addTileEntity(command_block)
 		editor.addCopiedSchematic(schematic)
 
