@@ -29,9 +29,9 @@ inputs = [
 	(
 		('Structure generation', 'title'),
 		('Relative position', ('South', 'East', 'North', 'West')),
-		('Forward offset', 3),
+		('Forward offset', 2),
 		('Right offset', 0),
-		('Up offset', 1),
+		('Up offset', 0),
 		('Include air', False),
 		('Include blocks', True),
 		('Include null block data', False),
@@ -62,15 +62,22 @@ inputs = [
 def perform(level, box, options):
 	editor = inspect.stack()[1][0].f_locals.get('self', None).editor
 
+	forward_offset = options['Forward offset']
+	right_offset = options['Right offset']
+	up_offset = options['Up offset']
 	relative_position = options['Relative position']
+	generate_surrounding_box = options['Generate surrounding box']
+	if generate_surrounding_box:
+		forward_offset += 1
+		up_offset += 1
 	if relative_position == 'North':
-		execution_center = ((box.minx + box.maxx) // 2 - options['Right offset'], box.miny - options['Up offset'] + 2, box.maxz + options['Forward offset'] - 1)
+		execution_center = ((box.minx + box.maxx) // 2 - right_offset, box.miny - up_offset + 2, box.maxz + forward_offset - 1)
 	elif relative_position == 'East':
-		execution_center = (box.minx - options['Forward offset'], box.miny - options['Up offset'] + 2, (box.minz + box.maxz) // 2 - options['Right offset'])
+		execution_center = (box.minx - forward_offset, box.miny - up_offset + 2, (box.minz + box.maxz) // 2 - right_offset)
 	elif relative_position == 'South':
-		execution_center = ((box.minx + box.maxx) // 2 + options['Right offset'], box.miny - options['Up offset'] + 2, box.minz - options['Forward offset'])
+		execution_center = ((box.minx + box.maxx) // 2 + right_offset, box.miny - up_offset + 2, box.minz - forward_offset)
 	elif relative_position == 'West':
-		execution_center = (box.maxx + options['Forward offset'] - 1, box.miny - options['Up offset'] + 2, (box.minz + box.maxz) // 2 + options['Right offset'])
+		execution_center = (box.maxx + forward_offset - 1, box.miny - up_offset + 2, (box.minz + box.maxz) // 2 + right_offset)
 	include_air = options['Include air']
 	include_blocks = options['Include blocks']
 	include_null_block_data = options['Include null block data']
@@ -87,7 +94,6 @@ def perform(level, box, options):
 	nbt_tags_to_ignore = re.split(r'\s*,\s*', options['NBT tags to ignore']) + ['x', 'y', 'z']
 	save_command_to_file = options['Save the command to a file instead of to a Command Block']
 	ignore_maximum_command_block_command_length = options['Ignore maximum Command Block command length']
-	generate_surrounding_box = options['Generate surrounding box']
 	box_wall_material_block = options['Box wall material block']
 	box_wall_material_data = options['Box wall material data value']
 	box_floor_material_block = options['Box floor material block']
@@ -249,8 +255,8 @@ def perform(level, box, options):
 						wall_blocks[x][y].append(False)
 		for cuboid in subdivide_in_cuboids(wall_blocks, 32768, False, True, False):
 			if not first_element:
-				command += ","
-				unformatted_command += ","
+				command += ','
+				unformatted_command += ','
 			first_element = False
 			command_part = '{id:"minecraft:commandblock_minecart",Command:"fill ~' + str(cuboid[0][0] - 1 + box.minx - execution_center[0]) + ' ~' + str(cuboid[0][1] + box.miny - execution_center[1]) + ' ~' + str(cuboid[0][2] - 1 + box.minz - execution_center[2]) + ' ~' + str(cuboid[1][0] - 1 + box.minx - execution_center[0]) + ' ~' + str(cuboid[1][1] + box.miny - execution_center[1]) + ' ~' + str(cuboid[1][2] - 1 + box.minz - execution_center[2]) + ' ' + escape_string(box_wall_material_block)
 			if include_null_block_data or box_wall_material_data != 0:
