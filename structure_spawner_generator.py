@@ -218,52 +218,36 @@ def perform(level, box, options):
 					unformatted_command += command_part
 
 	if generate_surrounding_box:
-		floor_ceiling_blocks = []
-		for x in xrange(0, box.maxx - box.minx + 2):
-			floor_ceiling_blocks.append([])
-			floor_ceiling_blocks[x].append([])
-			for z in xrange(0, box.maxz - box.minz + 2):
-				floor_ceiling_blocks[x][0].append(True)
-		for cuboid in subdivide_in_cuboids(floor_ceiling_blocks, 32768, False, True, False):
+		if volume(box.minx - 1, box.miny - 1, box.minz - 1, box.maxx, box.maxy, box.maxz) <= 32768:
 			if not first_element:
 				command += ','
 				unformatted_command += ','
 			first_element = False
-			command_part = '{id:"minecraft:commandblock_minecart",Command:"fill ~' + str(cuboid[0][0] - 1 + box.minx - execution_center[0]) + ' ~' + str(cuboid[0][1] - 1 + box.miny - execution_center[1]) + ' ~' + str(cuboid[0][2] - 1 + box.minz - execution_center[2]) + ' ~' + str(cuboid[1][0] - 1 + box.minx - execution_center[0]) + ' ~' + str(cuboid[1][1] - 1 + box.miny - execution_center[1]) + ' ~' + str(cuboid[1][2] - 1 + box.minz - execution_center[2]) + ' ' + escape_string(box_floor_material_block)
-			if include_null_block_data or box_floor_material_data != 0:
-				command_part += ' ' + str(box_floor_material_data)
-			command_part += '"}'
+			command_part = '{id:"minecraft:commandblock_minecart",Command:"fill ~' + str(box.minx - 1 - execution_center[0]) + ' ~' + str(box.miny - 1 - execution_center[1]) + ' ~' + str(box.minz - 1 - execution_center[2]) + ' ~' + str(box.maxx - execution_center[0]) + ' ~' + str(box.maxy - execution_center[1]) + ' ~' + str(box.maxz - execution_center[2]) + ' ' + escape_string(box_wall_material_block) + ' ' + str(box_wall_material_data) + ' outline"}'
 			command += '\n\t' + command_part
 			unformatted_command += command_part
-
-			command_part = '{id:"minecraft:commandblock_minecart",Command:"fill ~' + str(cuboid[0][0] - 1 + box.minx - execution_center[0]) + ' ~' + str(cuboid[0][1] + box.maxy - execution_center[1]) + ' ~' + str(cuboid[0][2] - 1 + box.minz - execution_center[2]) + ' ~' + str(cuboid[1][0] - 1 + box.minx - execution_center[0]) + ' ~' + str(cuboid[1][1] + box.maxy - execution_center[1]) + ' ~' + str(cuboid[1][2] - 1 + box.minz - execution_center[2]) + ' ' + escape_string(box_ceiling_material_block)
-			if include_null_block_data or box_ceiling_material_data != 0:
-				command_part += ' ' + str(box_ceiling_material_data)
-			command_part += '"}'
-			command += ',\n\t' + command_part
-			unformatted_command += ',' + command_part
-
-		wall_blocks = []
-		for x in xrange(0, box.maxx - box.minx + 2):
-			wall_blocks.append([])
-			for y in xrange(0, box.maxy - box.miny):
-				wall_blocks[x].append([])
-				for z in xrange(0, box.maxz - box.minz + 2):
-					if x == 0 or x == box.maxx - box.minx + 1 or z == 0 or z == box.maxz - box.minz + 1:
-						wall_blocks[x][y].append(True)
-					else:
-						wall_blocks[x][y].append(False)
-		for cuboid in subdivide_in_cuboids(wall_blocks, 32768, False, True, False):
-			if not first_element:
-				command += ','
-				unformatted_command += ','
-			first_element = False
-			command_part = '{id:"minecraft:commandblock_minecart",Command:"fill ~' + str(cuboid[0][0] - 1 + box.minx - execution_center[0]) + ' ~' + str(cuboid[0][1] + box.miny - execution_center[1]) + ' ~' + str(cuboid[0][2] - 1 + box.minz - execution_center[2]) + ' ~' + str(cuboid[1][0] - 1 + box.minx - execution_center[0]) + ' ~' + str(cuboid[1][1] + box.miny - execution_center[1]) + ' ~' + str(cuboid[1][2] - 1 + box.minz - execution_center[2]) + ' ' + escape_string(box_wall_material_block)
-			if include_null_block_data or box_wall_material_data != 0:
-				command_part += ' ' + str(box_wall_material_data)
-			command_part += '"}'
-			command += '\n\t' + command_part
-			unformatted_command += command_part
+		else:
+			wall_blocks = []
+			for x in xrange(0, box.maxx - box.minx + 2):
+				wall_blocks.append([])
+				for y in xrange(0, box.maxy - box.miny):
+					wall_blocks[x].append([])
+					for z in xrange(0, box.maxz - box.minz + 2):
+						if x == 0 or x == box.maxx - box.minx + 1 or z == 0 or z == box.maxz - box.minz + 1:
+							wall_blocks[x][y].append(True)
+						else:
+							wall_blocks[x][y].append(False)
+			for cuboid in subdivide_in_cuboids(wall_blocks, 32768, False, True, False):
+				if not first_element:
+					command += ','
+					unformatted_command += ','
+				first_element = False
+				command_part = '{id:"minecraft:commandblock_minecart",Command:"fill ~' + str(cuboid[0][0] - 1 + box.minx - execution_center[0]) + ' ~' + str(cuboid[0][1] + box.miny - execution_center[1]) + ' ~' + str(cuboid[0][2] - 1 + box.minz - execution_center[2]) + ' ~' + str(cuboid[1][0] - 1 + box.minx - execution_center[0]) + ' ~' + str(cuboid[1][1] + box.miny - execution_center[1]) + ' ~' + str(cuboid[1][2] - 1 + box.minz - execution_center[2]) + ' ' + escape_string(box_wall_material_block)
+				if include_null_block_data or box_wall_material_data != 0:
+					command_part += ' ' + str(box_wall_material_data)
+				command_part += '"}'
+				command += '\n\t' + command_part
+				unformatted_command += command_part
 
 		if add_box_signs:
 			file_name = mcplatform.askOpenFile('Select the text file containing the signs to put on front of the box...', False, ['txt'])
@@ -320,6 +304,31 @@ def perform(level, box, options):
 						command_part += '}"}'
 						command += '\n\t' + command_part
 						unformatted_command += command_part
+
+		floor_ceiling_blocks = []
+		for x in xrange(0, box.maxx - box.minx + 2):
+			floor_ceiling_blocks.append([])
+			floor_ceiling_blocks[x].append([])
+			for z in xrange(0, box.maxz - box.minz + 2):
+				floor_ceiling_blocks[x][0].append(True)
+		for cuboid in subdivide_in_cuboids(floor_ceiling_blocks, 32768, False, True, False):
+			if not first_element:
+				command += ','
+				unformatted_command += ','
+			first_element = False
+			command_part = '{id:"minecraft:commandblock_minecart",Command:"fill ~' + str(cuboid[0][0] - 1 + box.minx - execution_center[0]) + ' ~' + str(cuboid[0][1] - 1 + box.miny - execution_center[1]) + ' ~' + str(cuboid[0][2] - 1 + box.minz - execution_center[2]) + ' ~' + str(cuboid[1][0] - 1 + box.minx - execution_center[0]) + ' ~' + str(cuboid[1][1] - 1 + box.miny - execution_center[1]) + ' ~' + str(cuboid[1][2] - 1 + box.minz - execution_center[2]) + ' ' + escape_string(box_floor_material_block)
+			if include_null_block_data or box_floor_material_data != 0:
+				command_part += ' ' + str(box_floor_material_data)
+			command_part += '"}'
+			command += '\n\t' + command_part
+			unformatted_command += command_part
+
+			command_part = '{id:"minecraft:commandblock_minecart",Command:"fill ~' + str(cuboid[0][0] - 1 + box.minx - execution_center[0]) + ' ~' + str(cuboid[0][1] + box.maxy - execution_center[1]) + ' ~' + str(cuboid[0][2] - 1 + box.minz - execution_center[2]) + ' ~' + str(cuboid[1][0] - 1 + box.minx - execution_center[0]) + ' ~' + str(cuboid[1][1] + box.maxy - execution_center[1]) + ' ~' + str(cuboid[1][2] - 1 + box.minz - execution_center[2]) + ' ' + escape_string(box_ceiling_material_block)
+			if include_null_block_data or box_ceiling_material_data != 0:
+				command_part += ' ' + str(box_ceiling_material_data)
+			command_part += '"}'
+			command += ',\n\t' + command_part
+			unformatted_command += ',' + command_part
 
 	if add_finalization_commands:
 		file_name = mcplatform.askOpenFile('Select the text file containing the finalization commands...', False, ['txt'])
