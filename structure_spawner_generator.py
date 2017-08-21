@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import inspect
 import re
 from collections import OrderedDict
 from decimal import Decimal
@@ -61,8 +60,6 @@ inputs = [
 
 
 def perform(level, box, options):
-	editor = inspect.stack()[1][0].f_locals.get('self', None).editor
-
 	forward_offset = options['Forward offset']
 	right_offset = options['Right offset']
 	up_offset = options['Up offset']
@@ -292,8 +289,7 @@ def perform(level, box, options):
 						command_part = '{id:"minecraft:commandblock_minecart",Command:"setblock ~' + str(world_coordinate[0]) + ' ~' + str(world_coordinate[1]) + ' ~' + str(world_coordinate[2]) + ' minecraft:wall_sign ' + str(sign_data) + ' replace {'
 						for i in xrange(0, min(4, len(sign))):
 							sign_text = sign[i]
-							sign_command = sign[i + 4] if len(sign) > i + 4 and len(sign[i + 4]) > 0 else ""
-							close = True
+							sign_command = sign[i + 4] if len(sign) > i + 4 and len(sign[i + 4]) > 0 else ''
 							if i > 0:
 								command_part += ','
 							command_part += 'Text' + str(i + 1) + r':\"'
