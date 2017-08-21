@@ -369,7 +369,7 @@ def perform(level, box, options):
 			command += ','
 			unformatted_command += ','
 		first_element = False
-		command_part = '{id:"minecraft:commandblock_minecart",Command:"' + escape_string('tellraw @p {"text":"Generated with Mamo\'s ","color":"yellow","extra":[{"text":"Structure spawner generator","color":"blue","clickEvent":{"action":"open_url","value":"https://github.com/xMamo/Structure-spawner-generator"},"hoverEvent":{"action":"show_text","value":"Click here if you want this filter too!"}},"."]}') + '"}'
+		command_part = '{id:"minecraft:commandblock_minecart",Command:"' + escape_string('tellraw @p {"color":"yellow","text":"Generated with Mamo\'s ","extra":[{"color":"blue","underlined":true,"text":"Structure spawner generator","clickEvent":{"action":"open_url","value":"https://github.com/xMamo/Structure-spawner-generator"},"hoverEvent":{"action":"show_text","value":"Click here if you want this filter too!"}},"."]}') + '"}'
 		command += '\n\t' + command_part
 		unformatted_command += command_part
 
