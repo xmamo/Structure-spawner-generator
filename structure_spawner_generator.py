@@ -1,5 +1,5 @@
-# Mamo's One Command Generator
-# Copyright (C) 2016  Matteo Morena
+# Structure spawner generator
+# Copyright (C) 2016-2017  Matteo Morena
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ from pymclevel import materials
 from pymclevel.nbt import TAG_Byte, TAG_Byte_Array, TAG_Compound, TAG_Double, TAG_Float, TAG_Int, TAG_Int_Array, TAG_List, TAG_Long, TAG_Short, TAG_Short_Array, TAG_String
 from pymclevel.schematic import MCSchematic
 
-displayName = "Mamo's One Command Generator"
+displayName = 'Structure spawner generator'
 
 inputs = [
 	(
