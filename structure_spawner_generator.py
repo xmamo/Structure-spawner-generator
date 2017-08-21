@@ -260,7 +260,7 @@ def perform(level, box, options):
 					coordinate = (0, 0)
 					for line in input.read().splitlines():
 						if signs_line == 0:
-							if len(line) > 0:
+							if line != '':
 								coordinates = re.split(r'\s*,\s*', line.strip())
 								coordinate = (int(coordinates[0]), int(coordinates[1]))
 								signs[coordinate] = []
