@@ -128,7 +128,7 @@ Command Block will contain the command to spawn the structure!
 
 ## Resources ##
 ### Italian tutorial video by iMamoMC ###
-[![Italian tutorial video by iMamoMC](italian-tutorial-video-by-imamomc-preview.png)](http://www.youtube.com/watch?v=2OgVyotqJ4g)
+[![Italian tutorial video by iMamoMC](italian-tutorial-video-by-imamomc-preview.png)](https://www.youtube.com/watch?v=2OgVyotqJ4g)
 
 
 ### Updated  italian tutorial video by BisUmTo ###
