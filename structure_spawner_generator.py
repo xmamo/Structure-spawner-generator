@@ -1,5 +1,5 @@
 # Structure spawner generator
-# Copyright (C) 2016-2017  Matteo Morena
+# Copyright (C) 2017  Matteo Morena
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 
 import inspect
 import re
+from collections import OrderedDict
 from decimal import Decimal
 
 import mcplatform
@@ -124,9 +125,9 @@ def perform(level, box, options):
 		unformatted_command += command_part
 
 	if add_initialization_commands:
-		file_name = mcplatform.askOpenFile('Select the text file containing the initialization commands...', False, ['txt'])
-		if file_name is not None:
-			input = open(file_name)
+		file = mcplatform.askOpenFile('Select the text file containing the initialization commands...', False, ['txt'])
+		if file is not None:
+			input = open(file)
 			if input is not None:
 				for line in input.read().splitlines():
 					if not first_element:
@@ -250,57 +251,75 @@ def perform(level, box, options):
 				unformatted_command += command_part
 
 		if add_box_signs:
-			file_name = mcplatform.askOpenFile('Select the text file containing the signs to put on front of the box...', False, ['txt'])
-			if file_name is not None:
-				input = open(file_name)
+			file = mcplatform.askOpenFile('Select the text file containing the signs to put on front of the box...', False, ['txt'])
+			if file is not None:
+				input = open(file)
 				if input is not None:
-					signs = {}
-					sign_iteration = -1
-					last_coordinate = (0, 0)
+					signs = OrderedDict()
+					signs_line = 0
+					coordinate = (0, 0)
 					for line in input.read().splitlines():
-						if sign_iteration != -1 or len(line.strip()) > 0:
-							sign_iteration += 1
-							if sign_iteration == 0:
+						if signs_line == 0:
+							if len(line) > 0:
 								coordinates = re.split(r'\s*,\s*', line.strip())
-								last_coordinate = (int(coordinates[0]), int(coordinates[1]))
-								signs[last_coordinate] = []
-							else:
-								signs[last_coordinate].append(line)
-							if sign_iteration == 8:
-								sign_iteration = -1
+								coordinate = (int(coordinates[0]), int(coordinates[1]))
+								signs[coordinate] = []
+								signs_line += 1
+						else:
+							signs[coordinate].append(line)
+							signs_line += 1
+						if signs_line == 9:
+							signs_line = 0
 
-					for key in signs.keys():
+					for coordinate, sign in signs.items():
 						if relative_position == 'North':
-							sign_position = (box.minx - 1 + key[0] - execution_center[0], box.miny - 1 + key[1] - execution_center[1], box.maxz + 1 - execution_center[2])
+							world_coordinate = (box.minx - 1 + coordinate[0] - execution_center[0], box.miny - 1 + coordinate[1] - execution_center[1], box.maxz + 1 - execution_center[2])
 							sign_data = 3
 						elif relative_position == 'East':
-							sign_position = (box.minx - 2 - execution_center[0], box.miny - 1 + key[1] - execution_center[1], box.minz - 1 + key[0] - execution_center[2])
+							world_coordinate = (box.minx - 2 - execution_center[0], box.miny - 1 + coordinate[1] - execution_center[1], box.minz - 1 + coordinate[0] - execution_center[2])
 							sign_data = 4
 						elif relative_position == 'South':
-							sign_position = (box.maxx - key[0] - execution_center[0], box.miny - 1 + key[1] - execution_center[1], box.minz - 2 - execution_center[2])
+							world_coordinate = (box.maxx - coordinate[0] - execution_center[0], box.miny - 1 + coordinate[1] - execution_center[1], box.minz - 2 - execution_center[2])
 							sign_data = 2
 						else:
-							sign_position = (box.maxx + 1 - execution_center[0], box.miny - 1 + key[1] - execution_center[1], box.maxz - key[0] - execution_center[2])
+							world_coordinate = (box.maxx + 1 - execution_center[0], box.miny - 1 + coordinate[1] - execution_center[1], box.maxz - coordinate[0] - execution_center[2])
 							sign_data = 5
 
 						if not first_element:
 							command += ','
 							unformatted_command += ','
 						first_element = False
-						command_part = '{id:"minecraft:commandblock_minecart",Command:"setblock ~' + str(sign_position[0]) + ' ~' + str(sign_position[1]) + ' ~' + str(sign_position[2]) + ' minecraft:wall_sign ' + str(sign_data) + ' replace {'
-						if len(signs[key]) > 0:
-							for i in xrange(0, min(4, len(signs[key]))):
-								if i > 0:
-									command_part += ','
-								if signs[key][i].startswith('{'):
-									command_part += escape_string('Text' + str(i + 1) + ':"' + escape_string('{"text":"","extra":[' + signs[key][i] + ']'))
-								elif signs[key][i].startswith('['):
-									command_part += escape_string('Text' + str(i + 1) + ':"' + escape_string('{"text":"","extra":' + signs[key][i]))
+						command_part = '{id:"minecraft:commandblock_minecart",Command:"setblock ~' + str(world_coordinate[0]) + ' ~' + str(world_coordinate[1]) + ' ~' + str(world_coordinate[2]) + ' minecraft:wall_sign ' + str(sign_data) + ' replace {'
+						for i in xrange(0, min(4, len(sign))):
+							sign_text = sign[i]
+							sign_command = sign[i + 4] if len(sign) > i + 4 and len(sign[i + 4]) > 0 else ""
+							close = True
+							if i > 0:
+								command_part += ','
+							command_part += 'Text' + str(i + 1) + r':\"'
+							if sign_text.startswith('{'):
+								if sign_command != '':
+									command_part += escape_string(escape_string('{"text":"","extra":[' + sign_text + ']'))
 								else:
-									command_part += escape_string('Text' + str(i + 1) + ':"' + escape_string('{"text":"' + escape_string(signs[key][i]) + '"'))
-								if len(signs[key]) > i + 4 and len(signs[key][i + 4].strip()) > 0:
-									command_part += escape_string(escape_string(',"clickEvent":{"action":"run_command","value":"' + escape_string(signs[key][i + 4]) + '"}'))
-								command_part += r'}\"'
+									command_part += escape_string(escape_string(sign_text))
+							elif sign_text.startswith('['):
+								if sign_command != '':
+									command_part += escape_string(escape_string('{"text":"","extra":' + sign_text))
+								else:
+									command_part += escape_string(escape_string(sign_text))
+							elif sign_text.startswith('"'):
+								if sign_command != '':
+									command_part += escape_string(escape_string('{"text":' + sign_text))
+								else:
+									command_part += escape_string(escape_string(sign_text))
+							else:
+								if sign_command != '':
+									command_part += escape_string(escape_string('{"text":"' + escape_string(sign_text) + '"'))
+								else:
+									command_part += escape_string(escape_string('"' + sign_text + '"'))
+							if sign_command != '':
+								command_part += escape_string(escape_string(',"clickEvent":{"action":"run_command","value":"' + escape_string(sign_command) + '"}}'))
+							command_part += r'\"'
 						command_part += '}"}'
 						command += '\n\t' + command_part
 						unformatted_command += command_part
@@ -331,9 +350,9 @@ def perform(level, box, options):
 			unformatted_command += ',' + command_part
 
 	if add_finalization_commands:
-		file_name = mcplatform.askOpenFile('Select the text file containing the finalization commands...', False, ['txt'])
-		if file_name is not None:
-			input = open(file_name)
+		file = mcplatform.askOpenFile('Select the text file containing the finalization commands...', False, ['txt'])
+		if file is not None:
+			input = open(file)
 			if input is not None:
 				for line in input.read().splitlines():
 					if not first_element:
@@ -367,8 +386,8 @@ def perform(level, box, options):
 	command += ",\n\t" + command_part + '\n]}]}'
 	unformatted_command += "," + command_part + ']}]}'
 
-	if not ignore_maximum_command_block_command_length and len(unformatted_command) > 32767:
-		editor.Notify('Unfortunately no command could be generated, as it would be longer than the Command Block command length limit of 32767 characters.')
+	if not ignore_maximum_command_block_command_length and len(unformatted_command) > 32500:
+		editor.Notify('Unfortunately no command could be generated, as it would be longer than the Command Block command length limit of 32500 characters.')
 		return
 
 	command_output = None
